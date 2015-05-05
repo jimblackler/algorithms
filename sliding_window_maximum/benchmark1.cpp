@@ -12,16 +12,21 @@ struct TestData0 {
 };
 
 struct Output0 {
-  int* out;
+  int *out;
+  size_t length;
+//  bool operator<(Output0 const& right) const
+//  {
+//    for (int i = 0; i < length; i++)
+//      if (array1[i] == array2[i])
+//  }
 };
 
-typedef void Signature(const int *in, size_t length, size_t windowSize, int *out);
 
-class SlidingWindowMaximumBenchmark : public Benchmark<Signature, TestData0, Output0> {
+class SlidingWindowMaximumBenchmark : public Benchmark<TestData0, Output0> {
 
   int generateTestData(unsigned int seed, float t, TestData0 *testData) {
     srand(seed);
-    const size_t size = (size_t const) (t * 20000 + 1);
+    const size_t size = (size_t const) (t * 200000 + 1);
     int *original = (int *) malloc(size * sizeof(int));
     for (size_t i = 0; i < size; i++)
       original[i] = rand() % INT_MAX;
@@ -31,24 +36,28 @@ class SlidingWindowMaximumBenchmark : public Benchmark<Signature, TestData0, Out
     return (int) size;
   };
 
-  void prepareOutput(TestData0* testData, Output0* output) {
+  void prepareOutput(TestData0 *testData, Output0 *output) {
     output->out = (int *) calloc(testData->length, sizeof(int));
   }
-
-  void invoke(Signature &signature, const TestData0& data, Output0* output) {
-    signature(data.array, data.length, data.windowSize, output->out);
-  };
 
 public:
 
   SlidingWindowMaximumBenchmark() {
-    addMethod("naive", &slidingWindowMaximum::naive);
-    addMethod("trackBack", &slidingWindowMaximum::trackBack);
-    addMethod("trackBackOptimized", &slidingWindowMaximum::trackBackOptimized);
+    addMethod("naive", [](const TestData0 &data, Output0 *output) {
+        slidingWindowMaximum::naive(data.array, data.length, data.windowSize, output->out);
+    });
+    addMethod("trackBack", [](const TestData0 &data, Output0 *output) {
+        slidingWindowMaximum::trackBack(data.array, data.length, data.windowSize, output->out);
+    });
+
+    addMethod("trackBackOptimized", [](const TestData0 &data, Output0 *output) {
+        slidingWindowMaximum::trackBackOptimized(data.array, data.length, data.windowSize, output->out);
+    });
+
   }
 };
 
 void benchmark1() {
   SlidingWindowMaximumBenchmark benchmark;
-  benchmark.run(100, 100);
+  benchmark.run(100, 4000);
 }
