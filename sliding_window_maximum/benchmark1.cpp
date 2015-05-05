@@ -3,6 +3,7 @@
 #include "benchmark.h"
 #include "naive.h"
 #include "track_back.h"
+#include "track_back_optimized.h"
 
 struct TestData0 {
   const int *array;
@@ -18,15 +19,16 @@ typedef void Signature(const int *in, size_t length, size_t windowSize, int *out
 
 class SlidingWindowMaximumBenchmark : public Benchmark<Signature, TestData0, Output0> {
 
-  void generateTestData(unsigned int seed, TestData0* testData) {
+  int generateTestData(unsigned int seed, float t, TestData0 *testData) {
     srand(seed);
-    const size_t size = 20000000;
+    const size_t size = (size_t const) (t * 20000 + 1);
     int *original = (int *) malloc(size * sizeof(int));
     for (size_t i = 0; i < size; i++)
       original[i] = rand() % INT_MAX;
     testData->array = original;
     testData->windowSize = size / 10;
     testData->length = size;
+    return (int) size;
   };
 
   void prepareOutput(TestData0* testData, Output0* output) {
@@ -42,10 +44,11 @@ public:
   SlidingWindowMaximumBenchmark() {
     addMethod("naive", &slidingWindowMaximum::naive);
     addMethod("trackBack", &slidingWindowMaximum::trackBack);
+    addMethod("trackBackOptimized", &slidingWindowMaximum::trackBackOptimized);
   }
 };
 
 void benchmark1() {
   SlidingWindowMaximumBenchmark benchmark;
-  benchmark.run();
+  benchmark.run(100, 100);
 }

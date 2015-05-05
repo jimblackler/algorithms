@@ -2,21 +2,27 @@
 
 namespace slidingWindowMaximum {
 
-void trackBack(const int *in, size_t length, size_t windowSize, int *out) {
+void trackBackOptimized(const int *in, size_t length, size_t windowSize, int *out) {
 
   int from = 0;
+  int max = in[from];
   for (int i = 0; i < length; i++) {
-    if (in[i] >= in[from]) {
+    int v = in[i];
+    if (v >= max) {
       from = i;
+      max = v;
     }
-    out[i] = in[from];
+    out[i] = max;
     if (i < from + windowSize - 1)
       continue;
 
     from++;
+    max = in[from];
     for (int f = from + 1; f <= i; f++) {
-      if (in[f] >= in[from]) {
+      int v = in[f];
+      if (v >= max) {
         from = f;
+        max = v;
       }
     }
   }
