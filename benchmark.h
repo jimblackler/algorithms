@@ -1,3 +1,6 @@
+// (c) Jim Blackler (jimblacker@gmail.com)
+// Free software under GNU General Public License Version 2 (see LICENSE).
+
 #include <list>
 #include <vector>
 #include <string>
@@ -11,6 +14,7 @@ template<typename TestData, typename Output>
 class Benchmark {
   struct Method {
     void (*invoker)(TestData const &, Output *);
+
     const char *name;
   };
 
@@ -21,10 +25,6 @@ class Benchmark {
 
   std::list<Method> methods;
 
-  virtual int generateTestData(unsigned int seed, float t, TestData *testData) = 0;
-
-  virtual void prepareOutput(TestData *testData, Output *output) = 0;
-
 public:
   void addMethod(char const *name, void (*invoker)(TestData const &, Output *)) {
     Method m({invoker, name});
@@ -32,24 +32,25 @@ public:
   }
 
   void run(int samples, int cap) {
-    TestData testData;
+
     std::vector<Column> columns;
     std::set<const Method *> capped;
     for (int s = 0; s != samples; s++) {
       Column column;
       float t = (float) s / (samples - 1);
-      column.x = generateTestData(0, t, &testData);
+      TestData testData(0, t);
+      column.x = testData.x();
 
-      //std::multimap<Output, Method*> results;
+      std::multimap<std::unique_ptr<Output>, const Method *> results;
       int m = 0;
       for (const Method &method : methods) {
         if (capped.find(&method) == capped.end()) {
-          Output output;
-          prepareOutput(&testData, &output);
+          Output *output = new Output(&testData);
           long long int before = getMicroseconds();
-          method.invoker(testData, &output);
+          method.invoker(testData, output);
           long long int after = getMicroseconds();
           int y = (int const &) (after - before);
+          results.insert(std::make_pair(std::unique_ptr<Output>(output), &method));
           column.results[&method] = y;
           if (y > cap) {
             capped.insert(&method);
@@ -64,10 +65,11 @@ public:
     FILE *gp = popen("/opt/local/bin/gnuplot", "w");
     int m = 0;
     fprintf(gp, "set yrange [0:%d]\n", cap);
+    
     fprintf(gp, "plot ");
     const char *separator = "";
     for (const Method &method : methods) {
-      fprintf(gp, "%s'-' using 1:2 title '%s' with linespoints ps 0.1", separator, method.name);
+      fprintf(gp, "%s'-' using 1:2 title '%s' with linespoints pointsize 0.1", separator, method.name);
       separator = ", ";
     }
     fprintf(gp, "\n");
