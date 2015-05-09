@@ -4,6 +4,6 @@
 #include "stddef.h"
 namespace slidingWindowMaximum {
 
-  extern void trackBackOptimized(const int *in, size_t length, size_t windowSize, int *out);
+extern void dequeMethod(const int *in, size_t length, size_t windowSize, int *out);
 
 }
