@@ -13,9 +13,6 @@ void dequeMethod(const int *in, size_t length, size_t windowSize, int *out) {
   queue.push_front(0);
   out[0] = in[0];
   for (int i = 1; i < length; i++) {
-    if (queue.back() + windowSize == i) {
-      queue.pop_back();
-    }
     int value = in[i];
     while (in[queue.front()] <= value) {
       queue.pop_front();
@@ -23,6 +20,9 @@ void dequeMethod(const int *in, size_t length, size_t windowSize, int *out) {
         break;
     }
     queue.push_front(i);
+    if (queue.back() + windowSize == i) {
+      queue.pop_back();
+    }
     out[i] = in[queue.back()];
   }
 }

@@ -25,9 +25,6 @@ void fourPhase(const int *in, size_t length, size_t windowSize, int *out) {
 
   int lengthMinusK = length - windowSize;
   for (int i = windowSize; i < lengthMinusK; i++) {
-    if (queue.back() == i - windowSize) {
-      queue.pop_back();
-    }
     int value = in[i];
     while (in[queue.front()] <= value) {
       queue.pop_front();
@@ -35,14 +32,14 @@ void fourPhase(const int *in, size_t length, size_t windowSize, int *out) {
         break;
     }
     queue.push_front(i);
+    if (queue.back() == i - windowSize) {
+      queue.pop_back();
+    }
     out[i] = in[queue.back()];
   }
 
   int i = lengthMinusK;
   while (i < length) {
-    if (queue.back() == i - windowSize) {
-      queue.pop_back();
-    }
     int value = in[i];
     while (in[queue.front()] <= value) {
       queue.pop_front();
@@ -50,6 +47,9 @@ void fourPhase(const int *in, size_t length, size_t windowSize, int *out) {
         break;
     }
     queue.push_front(i);
+    if (queue.back() == i - windowSize) {
+      queue.pop_back();
+    }
     int back = queue.back();
     out[i] = in[back];
     i++;

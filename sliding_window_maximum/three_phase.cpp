@@ -14,9 +14,6 @@ void threePhase(const int *in, size_t length, size_t windowSize, int *out) {
   out[0] = in[0];
   size_t lengthMinusK = length - windowSize;
   for (int i = 1; i < lengthMinusK; i++) {
-    if (queue.back() == i - windowSize) {
-      queue.pop_back();
-    }
     int value = in[i];
     while (in[queue.front()] <= value) {
       queue.pop_front();
@@ -24,14 +21,14 @@ void threePhase(const int *in, size_t length, size_t windowSize, int *out) {
         break;
     }
     queue.push_front(i);
+    if (queue.back() == i - windowSize) {
+      queue.pop_back();
+    }
     out[i] = in[queue.back()];
   }
 
   int i = (int) lengthMinusK;
   while (i < length) {
-    if (queue.back() == i - windowSize) {
-      queue.pop_back();
-    }
     int value = in[i];
     while (in[queue.front()] <= value) {
       queue.pop_front();
@@ -39,6 +36,9 @@ void threePhase(const int *in, size_t length, size_t windowSize, int *out) {
         break;
     }
     queue.push_front(i);
+    if (queue.back() == i - windowSize) {
+      queue.pop_back();
+    }
     int back = queue.back();
     out[i] = in[back];
     i++;

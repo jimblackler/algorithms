@@ -16,9 +16,6 @@ void twoPhase(const int *in, size_t length, size_t windowSize, int *out) {
   int i = 1;
 
   while (i < length) {
-    if (queue.back() + windowSize == i) {
-      queue.pop_back();
-    }
     int value = in[i];
     while (in[queue.front()] <= value) {
       queue.pop_front();
@@ -26,6 +23,9 @@ void twoPhase(const int *in, size_t length, size_t windowSize, int *out) {
         break;
     }
     queue.push_front(i);
+    if (queue.back() + windowSize == i) {
+      queue.pop_back();
+    }
     int back = queue.back();
     out[i] = in[back];
     i++;
