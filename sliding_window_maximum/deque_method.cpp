@@ -8,12 +8,12 @@
 namespace slidingWindowMaximum {
 
 void dequeMethod(const int *in, size_t length, size_t windowSize, int *out) {
-  std::deque<int> queue((size_t) windowSize);
+  std::deque<int> queue;
 
   queue.push_front(0);
   out[0] = in[0];
-  for (int i = 1; i != length; i++) {
-    if (queue.back() == i - windowSize) {
+  for (int i = 1; i < length; i++) {
+    if (queue.back() + windowSize == i) {
       queue.pop_back();
     }
     int value = in[i];

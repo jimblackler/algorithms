@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <math.h>
 
 #include "stdio.h"
 #include "stdlib.h"
@@ -45,11 +46,29 @@ public:
 
     std::vector<Column> columns;
     std::set<const Method *> capped;
+    int previous = 0;
     for (int s = 0; s != samples; s++) {
       Column column;
-      float t = (float) s / (samples - 1);
-      TestData testData(0, t);
-      column.x = testData.x();
+      int target = (int) (pow((float) s / (samples - 1), 4) * 200000 + 1);
+      while (target <= previous)
+        target++;
+      int round = 1;
+      int size = target;
+
+      while(true) {
+        int prospect = target - target % round;
+        if (prospect <= previous)
+          break;
+        round *= 5;
+        prospect = target - target % round;
+        if (prospect <= previous)
+          break;
+        round *= 2;
+        size = prospect;
+      }
+      previous = size;
+      TestData testData(0, size);
+      column.x = size;
 
       std::multimap<std::unique_ptr<const Output>, const Method *, Comparator> results;
       int m = 0;
@@ -75,7 +94,7 @@ public:
       }
 
       if (groupCount > 1) {
-        printf("Multiple groups of results where one was expected:\n");
+        printf("%d: Multiple groups of results where one was expected:\n", column.x);
         for (auto it = results.begin(); it != results.end(); it = results.upper_bound(it->first)) {
           auto groupEnd = results.upper_bound(it->first);
           const char *separator = "Group: ";
@@ -85,9 +104,9 @@ public:
           }
           printf("\n");
         }
-        return;
+      } else {
+        columns.push_back(column);
       }
-      columns.push_back(column);
     }
 
     /* Output Gnuplot graph */

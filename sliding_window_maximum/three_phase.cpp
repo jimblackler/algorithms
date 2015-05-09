@@ -8,7 +8,7 @@
 namespace slidingWindowMaximum {
   
 void threePhase(const int *in, size_t length, size_t windowSize, int *out) {
-  std::deque<int> queue((size_t) windowSize);
+  std::deque<int> queue;
 
   queue.push_front(0);
   out[0] = in[0];
@@ -28,7 +28,7 @@ void threePhase(const int *in, size_t length, size_t windowSize, int *out) {
   }
 
   int i = (int) lengthMinusK;
-  while (true) {
+  while (i < length) {
     if (queue.back() == i - windowSize) {
       queue.pop_back();
     }

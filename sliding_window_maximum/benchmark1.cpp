@@ -21,10 +21,6 @@ class TestData0 {
 
 public:
 
-  int x() const {
-    return (int) _length;
-  }
-
   const int *array() const {
     return _array;
   }
@@ -37,9 +33,9 @@ public:
     return _length;
   }
 
-  TestData0(unsigned int seed, float t) {
+  TestData0(unsigned int seed, int size) {
     srand(seed);
-    _length = (size_t const) (pow(t, 3) * 200000 + 1);
+    _length = (size_t const) size;
     _array = (int *) malloc(_length * sizeof(int));
     for (size_t i = 0; i < _length; i++)
       _array[i] = rand() % INT_MAX;

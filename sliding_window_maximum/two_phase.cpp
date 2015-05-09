@@ -8,15 +8,15 @@
 namespace slidingWindowMaximum {
   
 void twoPhase(const int *in, size_t length, size_t windowSize, int *out) {
-  std::deque<int> queue((size_t) windowSize);
+  std::deque<int> queue;
 
   queue.push_front(0);
   out[0] = in[0];
   size_t lengthMinusK = length - windowSize;
   int i = 1;
 
-  while (true) {
-    if (queue.back() == i - windowSize) {
+  while (i < length) {
+    if (queue.back() + windowSize == i) {
       queue.pop_back();
     }
     int value = in[i];
