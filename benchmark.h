@@ -42,14 +42,13 @@ public:
     }
   };
 
-  void run(int samples, int cap) {
-
+  void run(int samples, float min, float max, float distribution, int cap) {
     std::vector<Column> columns;
     std::set<const Method *> capped;
     int previous = 0;
     for (int s = 0; s != samples; s++) {
       Column column;
-      int target = (int) (pow((float) s / (samples - 1), 4) * 200000 + 1);
+      int target = (int) (pow((float) s / (samples - 1), distribution) * (max - min) + min);
       while (target <= previous)
         target++;
       int round = 1;

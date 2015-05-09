@@ -3,8 +3,6 @@
 
 #include "benchmark.h"
 
-#include <math.h>
-
 #include "deque_method.h"
 #include "naive.h"
 #include "track_back.h"
@@ -33,7 +31,7 @@ public:
     return _length;
   }
 
-  TestData0(unsigned int seed, int size) {
+  TestData0(unsigned int seed, float size) {
     srand(seed);
     _length = (size_t const) size;
     _array = (int *) malloc(_length * sizeof(int));
@@ -103,11 +101,9 @@ public:
     addMethod("trackBack", trackBack);
     addMethod("trackBackOptimized", trackBackOptimized);
   }
-
-
 };
 
 void benchmark1() {
   SlidingWindowMaximumBenchmark benchmark;
-  benchmark.run(30, 6000);
+  benchmark.run(100, 1, 1000000, 4, 10000);
 }
