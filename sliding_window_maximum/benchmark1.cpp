@@ -11,7 +11,7 @@
 #include "two_phase.h"
 #include "four_phase.h"
 
-class TestData0 {
+class BaseTestData {
 
   int *_array;
   size_t _windowSize;
@@ -31,21 +31,35 @@ public:
     return _length;
   }
 
-  TestData0(unsigned int seed, float size) {
+  BaseTestData(unsigned int seed, float ratio, float size) {
     srand(seed);
     _length = (size_t const) size;
     _array = (int *) malloc(_length * sizeof(int));
     for (size_t i = 0; i < _length; i++)
       _array[i] = rand() % INT_MAX;
 
-    _windowSize = _length / 5 + 1;
+    _windowSize = std::max((size_t) 1, (size_t) (size * ratio));
+
   }
 
-  ~TestData0() {
+  ~BaseTestData() {
     free(_array);
   }
 
 };
+
+class SpeedTestData : public BaseTestData {
+public:
+  SpeedTestData(unsigned int seed, float size) : BaseTestData(seed, 0.3, size) {
+  }
+};
+
+class RatioTestData : public BaseTestData {
+public:
+  RatioTestData(unsigned int seed, float ratio) : BaseTestData(seed, ratio, 8000000) {
+  }
+};
+
 
 class Output0 {
   int *_out;
@@ -56,7 +70,7 @@ public:
     return _out;
   }
 
-  Output0(const TestData0 *testData) {
+  Output0(const BaseTestData *testData) {
     _length = testData->length();
     _out = (int *) calloc(testData->length(), sizeof(int));
   }
@@ -80,11 +94,13 @@ public:
   }
 };
 
-class SlidingWindowMaximumBenchmark : public Benchmark<TestData0, Output0> {
+template <typename TestData>
+class SlidingWindowMaximumBenchmark : public Benchmark<TestData, Output0> {
 
+protected:
   void addMethod(const char* name,
                  void (*method)(const int *, size_t, size_t, int *)) {
-    Benchmark::addMethod(name, [=](const TestData0 &data, Output0 *output) {
+    Benchmark<TestData, Output0>::addMethod(name, [=](const TestData &data, Output0 *output) {
         method(data.array(), data.length(), data.windowSize(), output->out());
     });
   }
@@ -93,7 +109,6 @@ public:
 
   SlidingWindowMaximumBenchmark() {
     using namespace slidingWindowMaximum;
-    addMethod("naive", naive);
     addMethod("dequeMethod", dequeMethod);
     addMethod("twoPhase", twoPhase);
     addMethod("threePhase", threePhase);
@@ -103,7 +118,22 @@ public:
   }
 };
 
+class SpeedBenchmark : public SlidingWindowMaximumBenchmark<SpeedTestData> {
+
+public:
+  SpeedBenchmark() {
+    using namespace slidingWindowMaximum;
+    addMethod("naive", naive);
+  }
+};
+
+class RatioBenchmark : public SlidingWindowMaximumBenchmark<RatioTestData> {};
+
 void benchmark1() {
-  SlidingWindowMaximumBenchmark benchmark;
-  benchmark.run(100, 1, 1000000, 4, 10000);
+//  SpeedBenchmark benchmark;
+//  benchmark.run(100, 1, 1000000, 4, true, 12000, "Microseconds");
+
+  RatioBenchmark benchmark;
+  benchmark.run(60, 0, 1, 1, false, 400000, "Window size ratio");
+
 }

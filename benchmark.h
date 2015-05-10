@@ -21,18 +21,18 @@ class Benchmark {
   };
 
   struct Column {
-    int x;
+    float x;
     std::map<const Method *, int> results;
   };
 
-  std::list<Method> methods;
+  std::vector<std::shared_ptr<const Method>> methods;
 
 public:
   void addMethod(char const *name, std::function<void(TestData const &, Output *)> invoker) {
-    Method m;
-    m.invoker = invoker;
-    m.name = name;
-    methods.push_back(m);
+    Method *m = new Method();
+    m->invoker = invoker;
+    m->name = name;
+    methods.push_back(std::shared_ptr<const Method>(m));
   }
 
   struct Comparator {
@@ -42,46 +42,54 @@ public:
     }
   };
 
-  void run(int samples, float min, float max, float distribution, int cap) {
+  void run(int samples, float min, float max, float distribution, bool rounded, int cap, const char *label) {
     std::vector<Column> columns;
     std::set<const Method *> capped;
     int previous = 0;
     for (int s = 0; s != samples; s++) {
+      printf("%d / %d\r", s, samples);
+      fflush(stdout);
       Column column;
-      int target = (int) (pow((float) s / (samples - 1), distribution) * (max - min) + min);
-      while (target <= previous)
-        target++;
-      int round = 1;
-      int size = target;
+      float value = (float) (pow((float) s / (samples - 1), distribution) * (max - min) + min);
+      if (rounded) {
+        int target = (int) value;
 
-      while(true) {
-        int prospect = target - target % round;
-        if (prospect <= previous)
-          break;
-        round *= 5;
-        prospect = target - target % round;
-        if (prospect <= previous)
-          break;
-        round *= 2;
-        size = prospect;
+        while (target <= previous)
+          target++;
+        int round = 1;
+        value = target;
+
+        while (true) {
+          int prospect = target - target % round;
+          if (prospect <= previous)
+            break;
+          round *= 5;
+          prospect = target - target % round;
+          if (prospect <= previous)
+            break;
+          round *= 2;
+          value = prospect;
+        }
+        previous = (int) value;
       }
-      previous = size;
-      TestData testData(0, size);
-      column.x = size;
+      TestData testData(0, value);
+      column.x = value;
 
       std::multimap<std::unique_ptr<const Output>, const Method *, Comparator> results;
       int m = 0;
-      for (const Method &method : methods) {
-        if (capped.find(&method) == capped.end()) {
+      std::vector<std::shared_ptr<const Method>> shuffled_methods(methods);
+      std::random_shuffle(shuffled_methods.begin(), shuffled_methods.end());
+      for (auto method : shuffled_methods) {
+        if (capped.find(method.get()) == capped.end()) {
           Output *output = new Output(&testData);
           long long int before = getMicroseconds();
-          method.invoker(testData, output);
+          method->invoker(testData, output);
           long long int after = getMicroseconds();
           int y = (int const &) (after - before);
-          results.insert(std::make_pair(std::unique_ptr<const Output>(output), &method));
-          column.results[&method] = y;
+          results.insert(std::make_pair(std::unique_ptr<const Output>(output), method.get()));
+          column.results[method.get()] = y;
           if (y > cap) {
-            capped.insert(&method);
+            capped.insert(method.get());
           }
         }
         m++;
@@ -93,7 +101,7 @@ public:
       }
 
       if (groupCount > 1) {
-        printf("%d: Multiple groups of results where one was expected:\n", column.x);
+        printf("%f: Multiple groups of results where one was expected:\n", column.x);
         for (auto it = results.begin(); it != results.end(); it = results.upper_bound(it->first)) {
           auto groupEnd = results.upper_bound(it->first);
           const char *separator = "Group: ";
@@ -111,25 +119,25 @@ public:
     /* Output Gnuplot graph */
     FILE *gp = popen("/opt/local/bin/gnuplot", "w");
     int m = 0;
-    fprintf(gp, "set xrange [0:%d]\n", columns.back().x);
+    fprintf(gp, "set xrange [0:%f]\n", columns.back().x);
     fprintf(gp, "set yrange [0:%d]\n", cap);
-    fprintf(gp, "set ylabel \"Microseconds\"\n");
+    fprintf(gp, "set ylabel \"%s\"\n", label);
 
     fprintf(gp, "plot ");
     const char *separator = "";
-    for (const Method &method : methods) {
-      fprintf(gp, "%s'-' using 1:2 title '%s' with linespoints pointsize 0.1", separator, method.name);
+    for (auto method : methods) {
+      fprintf(gp, "%s'-' using 1:2 title '%s' with linespoints pointsize 0.1", separator, method->name);
       separator = ", ";
     }
     fprintf(gp, "\n");
-    for (const Method &method : methods) {
+    for (auto method : methods) {
       for (Column &column: columns) {
-        int x = column.x;
-        if (column.results.find(&method) == column.results.end())
+        float x = column.x;
+        if (column.results.find(method.get()) == column.results.end())
           continue;
 
-        int y = column.results[&method];
-        fprintf(gp, "%d %d\n", x, y);
+        int y = column.results[method.get()];
+        fprintf(gp, "%f %d\n", x, y);
       }
       fprintf(gp, "e\n");
       m++;
@@ -142,17 +150,17 @@ public:
     fprintf(h, "<head><link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"></head>");
     fprintf(h, "<table><tr><td></td>");
     for (Column &column: columns) {
-      fprintf(h, "<td>%d</td>", column.x);
+      fprintf(h, "<td>%f</td>", column.x);
     }
     fprintf(h, "</tr>");
-    for (const Method &method : methods) {
-      fprintf(h, "<tr><td>%s</td>", method.name);
+    for (auto method : methods) {
+      fprintf(h, "<tr><td>%s</td>", method->name);
 
       for (Column &column: columns) {
 
         fprintf(h, "<td>");
-        if (column.results.find(&method) != column.results.end()) {
-          int y = column.results[&method];
+        if (column.results.find(method.get()) != column.results.end()) {
+          int y = column.results[method.get()];
           fprintf(h, "%d", y);
         }
         fprintf(h, "</td>");

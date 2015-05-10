@@ -3,6 +3,8 @@
 
 #include "track_back.h"
 
+#include <climits>
+
 namespace slidingWindowMaximum {
 
 void trackBackOptimized(const int *in, size_t length, size_t windowSize, int *out) {
@@ -17,10 +19,11 @@ void trackBackOptimized(const int *in, size_t length, size_t windowSize, int *ou
     out[i] = max;
     if (i < from + windowSize - 1)
       continue;
-
+    
     from++;
-    max = in[from];
-    for (int f = from + 1; f <= i; f++) {
+
+    max = INT_MIN;
+    for (int f = from; f <= i; f++) {
       int v2 = in[f];
       if (v2 >= max) {
         from = f;
