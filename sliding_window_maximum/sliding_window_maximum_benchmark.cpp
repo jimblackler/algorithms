@@ -1,8 +1,13 @@
 // (c) Jim Blackler (jimblacker@gmail.com)
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
-#include "benchmark.h"
+#include "sliding_window_maximum_benchmark.h"
 
+#include <stdlib.h>
+#include <i386/limits.h>
+#include <algorithm>
+
+#include "benchmark.h"
 #include "deque_method.h"
 #include "naive.h"
 #include "track_back.h"
@@ -39,7 +44,6 @@ public:
       _array[i] = rand() % INT_MAX;
 
     _windowSize = std::max((size_t) 1, (size_t) (size * ratio));
-
   }
 
   ~BaseTestData() {
@@ -59,7 +63,6 @@ public:
   RatioTestData(unsigned int seed, float ratio) : BaseTestData(seed, ratio, 8000000) {
   }
 };
-
 
 class Output0 {
   int *_out;
@@ -84,12 +87,13 @@ public:
       return true;
     if (_length > right._length)
       return false;
-    for (int i = 0; i < _length; i++)
+    for (int i = 0; i < _length; i++) {
       if (_out[i] < right._out[i]) {
         return true;
       } else if (_out[i] > right._out[i]) {
         return false;
       }
+    }
     return false;
   }
 };
@@ -129,7 +133,7 @@ public:
 
 class RatioBenchmark : public SlidingWindowMaximumBenchmark<RatioTestData> {};
 
-void benchmark1() {
+void slidingWindowMaximumBenchmark() {
 //  SpeedBenchmark benchmark;
 //  benchmark.run(100, 1, 1000000, 4, true, 12000, "Microseconds");
 

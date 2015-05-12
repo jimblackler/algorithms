@@ -17,7 +17,7 @@ class Benchmark {
 
   struct Method {
     std::function<void(TestData const &, Output *)> invoker;
-    const char *name;
+    std::string name;
   };
 
   struct Column {
@@ -42,12 +42,13 @@ public:
     }
   };
 
-  void run(int samples, float min, float max, float distribution, bool rounded, int cap, const char *label) {
+  void run(int samples, float min, float max, float distribution, bool rounded, int cap,
+           const char *label) {
     std::vector<Column> columns;
     std::set<const Method *> capped;
     int previous = 0;
     for (int s = 0; s != samples; s++) {
-      printf("%d / %d\r", s, samples);
+
       fflush(stdout);
       Column column;
       float value = (float) (pow((float) s / (samples - 1), distribution) * (max - min) + min);
@@ -73,6 +74,7 @@ public:
         previous = (int) value;
       }
       TestData testData(0, value);
+      printf("\n%d / %d: %g\n", s + 1, samples, value);
       column.x = value;
 
       std::multimap<std::unique_ptr<const Output>, const Method *, Comparator> results;
@@ -82,10 +84,12 @@ public:
       for (auto method : shuffled_methods) {
         if (capped.find(method.get()) == capped.end()) {
           Output *output = new Output(&testData);
+          printf("%s:\t", method->name.c_str());
           long long int before = getMicroseconds();
           method->invoker(testData, output);
           long long int after = getMicroseconds();
           int y = (int const &) (after - before);
+          printf("%d\n", y);
           results.insert(std::make_pair(std::unique_ptr<const Output>(output), method.get()));
           column.results[method.get()] = y;
           if (y > cap) {
@@ -106,7 +110,7 @@ public:
           auto groupEnd = results.upper_bound(it->first);
           const char *separator = "Group: ";
           for (auto it2 = it; it2 != groupEnd; it2++) {
-            printf("%s%s", separator, it2->second->name);
+            printf("%s%s", separator, it2->second->name.c_str());
             separator = ", ";
           }
           printf("\n");
@@ -115,6 +119,8 @@ public:
         columns.push_back(column);
       }
     }
+
+    printf("Done.\n");
 
     /* Output Gnuplot graph */
     FILE *gp = popen("/opt/local/bin/gnuplot", "w");
@@ -126,7 +132,7 @@ public:
     fprintf(gp, "plot ");
     const char *separator = "";
     for (auto method : methods) {
-      fprintf(gp, "%s'-' using 1:2 title '%s' with linespoints pointsize 0.1", separator, method->name);
+      fprintf(gp, "%s'-' using 1:2 title '%s' with linespoints pointsize 0.1", separator, method->name.c_str());
       separator = ", ";
     }
     fprintf(gp, "\n");
@@ -146,30 +152,52 @@ public:
 
     /* Output HTML table */
     FILE *h = fopen("out/mytable.html", "w");
-
-    fprintf(h, "<head><link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"></head>");
-    fprintf(h, "<table><tr><td></td>");
-    for (Column &column: columns) {
-      fprintf(h, "<td>%f</td>", column.x);
-    }
-    fprintf(h, "</tr>");
-    for (auto method : methods) {
-      fprintf(h, "<tr><td>%s</td>", method->name);
-
+    if (h) {
+      fprintf(h, "<head><link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"></head>");
+      fprintf(h, "<table><tr><td></td>");
       for (Column &column: columns) {
-
-        fprintf(h, "<td>");
-        if (column.results.find(method.get()) != column.results.end()) {
-          int y = column.results[method.get()];
-          fprintf(h, "%d", y);
-        }
-        fprintf(h, "</td>");
+        fprintf(h, "<td>%g</td>", column.x);
       }
-      fprintf(h, "</tr>");
-      m++;
+      fprintf(h, "<td>Total</td></tr>");
+      for (auto method : methods) {
+        fprintf(h, "<tr><td>%s</td>", encodeHtml(method->name).c_str());
+        bool all = true;
+        long long total = 0;
+        for (Column &column: columns) {
+
+          // Find winner
+          int winner = INT_MAX;
+          for (auto pair: column.results) {
+            winner = std::min(winner, pair.second);
+          }
+
+          if (column.results.find(method.get()) != column.results.end()) {
+            int y = column.results[method.get()];
+            total += y;
+            if (y == winner) {
+              fprintf(h, "<td class='winner'>");
+            } else {
+              fprintf(h, "<td>");
+            }
+
+            fprintf(h, "%d</td>", y);
+
+          } else {
+            all = false;
+            fprintf(h, "<td></td>");
+          }
+        }
+        if (all) {
+          fprintf(h, "<td>%qi</td>", total);
+        } else {
+          fprintf(h, "<td></td>");
+        }
+        fprintf(h, "</tr>");
+        m++;
+      }
+      fprintf(h, "</table>");
+      fclose(h);
     }
-    fprintf(h, "</table>");
-    fclose(h);
 
   }
 
