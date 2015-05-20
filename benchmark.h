@@ -145,9 +145,6 @@ public:
     }
     int m = 0;
 
-
-
-
     fprintf(gp, "set xrange [%f:%f]\n", min, columns.back().x);
     fprintf(gp, "set yrange [0:%d]\n", cap);
     fprintf(gp, "set ylabel \"%s\"\n", label);
