@@ -2,6 +2,7 @@
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
 #include "stddef.h"
+
 namespace comparisonSortInPlace {
 
 extern void quicksort3(int *start, int *end);

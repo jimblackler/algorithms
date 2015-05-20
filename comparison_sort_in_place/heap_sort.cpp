@@ -39,7 +39,7 @@ static inline void siftDown(int position, int value, int *start, int count) {
 void heapSort(int *start, int *end) {
   int count = (int) (end - start);
 
-  for (int k = (count -  2) / 2; k >= 0; k--) {
+  for (int k = (count - 2) / 2; k >= 0; k--) {
     siftDown(k, start[k], start, count);
   }
 

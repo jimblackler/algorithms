@@ -32,7 +32,7 @@ void quicksortSwap(int *start, int *end) {
   }
 
   escape:;
-  if (start == lt ) {
+  if (start == lt) {
     for (int *ptr = start; ptr < end; ptr++) {
       if (*ptr == pivot) {
         *ptr = *lt;
