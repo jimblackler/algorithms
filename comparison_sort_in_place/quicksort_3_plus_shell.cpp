@@ -1,7 +1,6 @@
 // (c) Jim Blackler (jimblacker@gmail.com)
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
-
 #include "quicksort_3_plus_shell.h"
 
 #include "shell_sort.h"
