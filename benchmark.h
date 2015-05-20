@@ -219,8 +219,5 @@ public:
       fprintf(h, "</table>");
       fclose(h);
     }
-
   }
-
-
 };
