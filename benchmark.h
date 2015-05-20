@@ -1,20 +1,21 @@
 // (c) Jim Blackler (jimblacker@gmail.com)
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
-#include <list>
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
-#include <math.h>
-#include <thread>
-#include <future>
-#include <sys/time.h>
-
 #include "stdio.h"
 #include "stdlib.h"
 #include "timer.h"
 #include "utils.h"
+
+#include <algorithm>
+#include <future>
+#include <list>
+#include <map>
+#include <math.h>
+#include <set>
+#include <string>
+#include <sys/time.h>
+#include <thread>
+#include <vector>
 
 template<typename TestData, typename Output>
 class Benchmark {
@@ -189,7 +190,7 @@ public:
         for (Column &column: columns) {
 
           // Find winner
-          int winner = INT_MAX;
+          int winner = std::numeric_limits<int32_t>::max();
           for (auto pair: column.results) {
             winner = std::min(winner, pair.second);
           }

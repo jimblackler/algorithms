@@ -1,5 +1,3 @@
-#include <mach/mach_types.h>
-
 class Timer {
 
 public:

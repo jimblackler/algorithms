@@ -3,7 +3,8 @@
 
 #include "comparison_sort_in_place_benchmark.h"
 
-#include "benchmark.h"
+#include "../benchmark.h"
+
 #include "bubble_sort.h"
 #include "heap_sort.h"
 #include "insertion_sort.h"
@@ -18,6 +19,7 @@
 #include "shell_sort.h"
 
 #include <sstream>
+#include <stdlib.h>
 
 class TestData0 {
 
@@ -121,6 +123,7 @@ public:
         std::sort_heap(output->out(), output->out() + output->length());
     });
 
+#ifdef __APPLE__
     this->addMethod("<heapsort>", [=](const TestData0 &data, Output0 *output) {
         heapsort(output->out(), output->length(), sizeof(int), compare);
     });
@@ -128,6 +131,7 @@ public:
     this->addMethod("<mergesort>", [=](const TestData0 &data, Output0 *output) {
         mergesort(output->out(), output->length(), sizeof(int), compare);
     });
+#endif
 
     this->addMethod("std::qsort", [=](const TestData0 &data, Output0 *output) {
         std::qsort(output->out(), output->length(), sizeof(int), compare);
