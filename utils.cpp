@@ -3,8 +3,8 @@
 
 #include "utils.h"
 
-std::string encodeHtml(const std::string &data) {
-  std::string buffer;
+void encodeHtml(const std::string &data, std::string &buffer) {
+
   for (size_t pos = 0; pos != data.size(); ++pos) {
     switch (data[pos]) {
       case '&':
@@ -27,5 +27,5 @@ std::string encodeHtml(const std::string &data) {
         break;
     }
   }
-  return buffer;
+
 }

@@ -50,7 +50,7 @@ public:
       const char *label) {
     std::vector<Column> columns;
     std::set<const Method *> capped;
-    Timer timer;
+    std::unique_ptr<Timer> timer(Timer::newTimer());
     int previous = 0;
     for (int s = 0; s != samples; s++) {
 
@@ -92,9 +92,9 @@ public:
         Output *output = new Output(&testData);
         auto invoker = method->invoker;
 
-        auto before = timer.getTime();
+        auto before = timer->getTime();
         invoker(testData, output);
-        auto after = timer.getTime();
+        auto after = timer->getTime();
 
         int y = (int) (after - before);
 
@@ -152,7 +152,8 @@ public:
     fprintf(gp, "plot ");
     const char *separator = "";
     for (auto method : methods) {
-      fprintf(gp, "%s'-' using 1:2 title '%s' with linespoints pointsize 0.1", separator, method->name.c_str());
+      fprintf(gp, "%s'-' using 1:2 title '%s' with linespoints pointsize 0.1", separator,
+              method->name.c_str());
       separator = ", ";
     }
     fprintf(gp, "\n");
@@ -180,8 +181,9 @@ public:
       }
       fprintf(h, "<td>Total</td></tr>");
       for (auto method : methods) {
-        auto name = encodeHtml(method->name).c_str();
-        fprintf(h, "<tr title=\"%s\"><td>%s</td>", name, name);
+        std::string name;
+        encodeHtml(method->name, name);
+        fprintf(h, "<tr title=\"%s\"><td>%s</td>", name.c_str(), name.c_str());
         bool all = true;
         long long total = 0;
         for (Column &column: columns) {

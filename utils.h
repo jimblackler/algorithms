@@ -3,4 +3,4 @@
 
 #include <string>
 
-extern std::string encodeHtml(const std::string &data);
+extern void encodeHtml(const std::string &data, std::string &buffer);
