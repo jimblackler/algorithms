@@ -7,9 +7,13 @@
 #include <string>
 #include <vector>
 #include <math.h>
+#include <thread>
+#include <future>
+#include <sys/time.h>
 
 #include "stdio.h"
 #include "stdlib.h"
+#include "timer.h"
 #include "utils.h"
 
 template<typename TestData, typename Output>
@@ -43,9 +47,10 @@ public:
   };
 
   void run(int samples, float min, float max, float distribution, bool rounded, int cap,
-           const char *label) {
+      const char *label) {
     std::vector<Column> columns;
     std::set<const Method *> capped;
+    Timer timer;
     int previous = 0;
     for (int s = 0; s != samples; s++) {
 
@@ -73,30 +78,31 @@ public:
         }
         previous = (int) value;
       }
-      TestData testData(0, value);
+      TestData testData(1, value);
       printf("\n%d / %d: %g\n", s + 1, samples, value);
       column.x = value;
 
       std::multimap<std::unique_ptr<const Output>, const Method *, Comparator> results;
-      int m = 0;
       std::vector<std::shared_ptr<const Method>> shuffled_methods(methods);
       std::random_shuffle(shuffled_methods.begin(), shuffled_methods.end());
       for (auto method : shuffled_methods) {
-        if (capped.find(method.get()) == capped.end()) {
-          Output *output = new Output(&testData);
-          printf("%s:\t", method->name.c_str());
-          long long int before = getMicroseconds();
-          method->invoker(testData, output);
-          long long int after = getMicroseconds();
-          int y = (int const &) (after - before);
-          printf("%d\n", y);
-          results.insert(std::make_pair(std::unique_ptr<const Output>(output), method.get()));
-          column.results[method.get()] = y;
-          if (y > cap) {
-            capped.insert(method.get());
-          }
+        if (capped.find(method.get()) != capped.end())
+          continue;
+
+        Output *output = new Output(&testData);
+        auto invoker = method->invoker;
+
+        auto before = timer.getTime();
+        invoker(testData, output);
+        auto after = timer.getTime();
+
+        int y = (int) (after - before);
+
+        results.insert(std::make_pair(std::unique_ptr<const Output>(output), method.get()));
+        column.results[method.get()] = y;
+        if (y > cap) {
+          capped.insert(method.get());
         }
-        m++;
       }
 
       int groupCount = 0;
@@ -116,6 +122,10 @@ public:
           printf("\n");
         }
       } else {
+        for (auto result : column.results) {
+          auto method = result.first;
+          printf("%s:\t%d\n", method->name.c_str(), result.second);
+        }
         columns.push_back(column);
       }
     }
@@ -123,9 +133,22 @@ public:
     printf("Done.\n");
 
     /* Output Gnuplot graph */
-    FILE *gp = popen("/opt/local/bin/gnuplot", "w");
+    bool svgMode = false;
+
+    FILE *gp;
+    if (svgMode) {
+      gp = popen("/opt/local/bin/gnuplot >out/chart.svg", "w");
+      fprintf(gp, "set term svg size 1200,800 mouse jsdir \"http://gnuplot.sourceforge.net/demo_svg_4.6/\"\n");
+    } else {
+      gp = popen("/opt/local/bin/gnuplot", "w");
+      fprintf(gp, "set term aqua size 1200,800\n");
+    }
     int m = 0;
-    fprintf(gp, "set xrange [0:%f]\n", columns.back().x);
+
+
+
+
+    fprintf(gp, "set xrange [%f:%f]\n", min, columns.back().x);
     fprintf(gp, "set yrange [0:%d]\n", cap);
     fprintf(gp, "set ylabel \"%s\"\n", label);
 
@@ -160,7 +183,8 @@ public:
       }
       fprintf(h, "<td>Total</td></tr>");
       for (auto method : methods) {
-        fprintf(h, "<tr><td>%s</td>", encodeHtml(method->name).c_str());
+        auto name = encodeHtml(method->name).c_str();
+        fprintf(h, "<tr title=\"%s\"><td>%s</td>", name, name);
         bool all = true;
         long long total = 0;
         for (Column &column: columns) {

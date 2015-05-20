@@ -5,6 +5,6 @@
 
 namespace comparisonSortInPlace {
 
-extern void insertionSort(int *start, int *end);
+extern void quicksort3Threaded(int *start, int *end, int minSize);
 
 }

@@ -3,15 +3,6 @@
 
 #include "utils.h"
 
-#include <sys/time.h>
-
-long long int getMicroseconds() {
-  struct timeval time;
-  gettimeofday(&time, 0);
-  long long before = 1000000 * time.tv_sec + time.tv_usec;
-  return before;
-}
-
 std::string encodeHtml(const std::string &data) {
   std::string buffer;
   for (size_t pos = 0; pos != data.size(); ++pos) {

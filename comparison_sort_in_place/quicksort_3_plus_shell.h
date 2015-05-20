@@ -1,6 +1,9 @@
 // (c) Jim Blackler (jimblacker@gmail.com)
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
-#include <string>
+#include "stddef.h"
+namespace comparisonSortInPlace {
 
-extern std::string encodeHtml(const std::string &data);
+extern void quicksort3PlusShell(int *start, int *end);
+
+}

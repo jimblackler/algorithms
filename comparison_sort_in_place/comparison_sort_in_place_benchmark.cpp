@@ -3,20 +3,21 @@
 
 #include "comparison_sort_in_place_benchmark.h"
 
-#include <stdlib.h>
-#include <algorithm>
-#include <sstream>
-
 #include "benchmark.h"
 #include "bubble_sort.h"
+#include "heap_sort.h"
 #include "insertion_sort.h"
 #include "quicksort.h"
-#include "quicksort_3_way.h"
-#include "quicksort_3_way_threaded.h"
+#include "quicksort_3.h"
+#include "quicksort_3_plus_shell.h"
+#include "quicksort_3_threaded.h"
+#include "quicksort_swap.h"
+#include "quicksort_swap_plus_shell.h"
+#include "quicksort_swap_plus_shell_threaded.h"
+#include "quicksort_swap_threaded.h"
 #include "shell_sort.h"
-#include "hybrid_sort.h"
-#include "hybrid_sort_threaded.h"
-#include "heap_sort.h"
+
+#include <sstream>
 
 class TestData0 {
 
@@ -35,10 +36,15 @@ public:
 
   TestData0(unsigned int seed, float size) {
     _length = (size_t const) size;
-    srand((unsigned int) (seed + _length));
+    seed += _length;
+    srand(seed);
     _array = (int *) malloc(_length * sizeof(int));
-    for (size_t i = 0; i < _length; i++)
-      _array[i] = (int) (rand() % _length);
+    for (size_t i = 0; i < _length; i++) {
+      int r = rand();
+      srand((unsigned int) (r % _length));
+      _array[i] = rand();
+      srand((unsigned int) (r + seed + i));
+    }
 
   }
 
@@ -109,41 +115,51 @@ public:
     this->addMethod("std::sort", [=](const TestData0 &data, Output0 *output) {
         std::sort(output->out(), output->out() + output->length());
     });
-//
-//    this->addMethod("std::sort_heap", [=](const TestData0 &data, Output0 *output) {
-//        std::make_heap(output->out(), output->out() + output->length());
-//        std::sort_heap(output->out(), output->out() + output->length());
-//    });
-//
-//    this->addMethod("<heapsort>", [=](const TestData0 &data, Output0 *output) {
-//        heapsort(output->out(), output->length(), sizeof(int), compare);
-//    });
-//
-//    this->addMethod("<mergesort>", [=](const TestData0 &data, Output0 *output) {
-//        mergesort(output->out(), output->length(), sizeof(int), compare);
-//    });
-//
-//    this->addMethod("std::qsort", [=](const TestData0 &data, Output0 *output) {
-//        std::qsort(output->out(), output->length(), sizeof(int), compare);
-//    });
+
+    this->addMethod("std::sort_heap", [=](const TestData0 &data, Output0 *output) {
+        std::make_heap(output->out(), output->out() + output->length());
+        std::sort_heap(output->out(), output->out() + output->length());
+    });
+
+    this->addMethod("<heapsort>", [=](const TestData0 &data, Output0 *output) {
+        heapsort(output->out(), output->length(), sizeof(int), compare);
+    });
+
+    this->addMethod("<mergesort>", [=](const TestData0 &data, Output0 *output) {
+        mergesort(output->out(), output->length(), sizeof(int), compare);
+    });
+
+    this->addMethod("std::qsort", [=](const TestData0 &data, Output0 *output) {
+        std::qsort(output->out(), output->length(), sizeof(int), compare);
+    });
 
     using namespace comparisonSortInPlace;
 
     add("bubbleSort", bubbleSort);
+
     add("insertionSort", insertionSort);
     add("shellSort", shellSort);
-    add("hybridSort", hybridSort);
 
-    add("quicksort", quicksort);
-    add("quicksort3Way", quicksort3Way);
     add("heapSort", heapSort);
 
-    this->addMethod("hybridSortThreaded", [=](const TestData0 &data, Output0 *output) {
-        hybridSortThreaded(output->out(), output->out() + output->length(),
+    add("quicksort", quicksort);
+    add("quicksort3", quicksort3);
+    add("quicksort3PlusShell", quicksort3PlusShell);
+    add("quicksortSwap", quicksortSwap);
+    add("quicksortSwapPlusShell", quicksortSwapPlusShell);
+
+    this->addMethod("quicksortSwapThreaded", [=](const TestData0 &data, Output0 *output) {
+        quicksortSwapThreaded(output->out(), output->out() + output->length(),
             std::max(5000, (int) (0.04 * output->length())));
     });
-    this->addMethod("quicksort3WayThreaded", [=](const TestData0 &data, Output0 *output) {
-        quicksort3WayThreaded(output->out(), output->out() + output->length(),
+
+    this->addMethod("quicksortSwapPlusShellThreaded", [=](const TestData0 &data, Output0 *output) {
+        quicksortSwapPlusShellThreaded(output->out(), output->out() + output->length(),
+            std::max(5000, (int) (0.04 * output->length())));
+    });
+
+    this->addMethod("quicksort3Threaded", [=](const TestData0 &data, Output0 *output) {
+        quicksort3Threaded(output->out(), output->out() + output->length(),
             std::max(5000, (int) (0.04 * output->length())));
     });
 
@@ -153,11 +169,11 @@ public:
 
 void comparisonSortInPlaceBenchmark() {
   ComparisonSortInPlaceBenchmark benchmark;
-  int samples = 100;
-  int min = 1;
-  int max = (int) 400000;
-  int distribution = 1;
+  int samples = 75;
+  int min = 100;
+  int max = (int) 2e5;
+  int distribution = 2;
   bool rounded = true;
-  int cap = max / 10;
+  int cap = max * 125;
   benchmark.run(samples, min, max, distribution, rounded, cap, "Microseconds");
 }

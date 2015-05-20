@@ -4,6 +4,6 @@
 #include "stddef.h"
 namespace comparisonSortInPlace {
 
-extern void quicksort3WayThreaded(int *start, int *end, int minSize);
+extern void quicksortSwap(int *start, int *end);
 
 }

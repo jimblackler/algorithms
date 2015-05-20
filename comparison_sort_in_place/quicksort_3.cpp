@@ -1,18 +1,15 @@
 // (c) Jim Blackler (jimblacker@gmail.com)
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
-#include "hybrid_sort_threaded.h"
-
-#include "hybrid_sort.h"
-
-#include <thread>
+#include "quicksort_3.h"
 
 namespace comparisonSortInPlace {
 
-void hybridSortThreaded(int *start, int *end, int minSize) {
-  if (end - start <= minSize)
-    return hybridSort(start, end);
-  int pivot = *(start + (end - start) / 2);
+void quicksort3(int *start, int *end) {
+  auto length = end - start;
+  if (length <= 1)
+    return;
+  int pivot = start[length / 2];
   int *a = start;  // [start, a) is <pivot region
   int *b = start;  // [b, ptr) is >pivot region
   for (int *ptr = start; ptr < end; ptr++) {
@@ -20,17 +17,12 @@ void hybridSortThreaded(int *start, int *end, int minSize) {
     if (v > pivot)
       continue;
     *ptr = *b++;  // >pivot region shifted
-    if (v < pivot)
+    if (v != pivot)
       *a++ = v;  // <pivot region extended
   }
   for (int *ptr = a; ptr < b; ptr++)
     *ptr = pivot;  // Fill =pivot region
-
-  std::thread t1([=]() {
-      hybridSortThreaded(start, a, minSize);  // Sort <pivot region
-  });
-
-  hybridSortThreaded(b, end, minSize);  // Sort >pivot region
-  t1.join();
+  quicksort3(start, a);  // Sort <pivot region
+  quicksort3(b, end);  // Sort >pivot region
 }
 }

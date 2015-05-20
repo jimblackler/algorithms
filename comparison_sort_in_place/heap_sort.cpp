@@ -3,11 +3,9 @@
 
 #include "heap_sort.h"
 
-#include <deque>
-
 namespace comparisonSortInPlace {
 
-static void siftDown(int position, int value, int *start, int count) {
+static inline void siftDown(int position, int value, int *start, int count) {
 
   while (true) {
     int childPosition = 2 * position + 1;
@@ -31,13 +29,12 @@ static void siftDown(int position, int value, int *start, int count) {
     if (value >= childValue)
       break;  // Heap constraint met.
 
-    /* Promote child to parent, then repeat. */
+    // Promote child to parent, then repeat.
     start[position] = childValue;
     position = childPosition;
   }
   start[position] = value;
 }
-
 
 void heapSort(int *start, int *end) {
   int count = (int) (end - start);
@@ -46,11 +43,11 @@ void heapSort(int *start, int *end) {
     siftDown(k, start[k], start, count);
   }
 
-  while (count > 1) {
+  while (count--) {
     int maximal = start[0];
-    int replaced = start[count - 1];
-    start[count - 1] = maximal;
-    count--;
+    int replaced = start[count];
+    start[count] = maximal;
+
     siftDown(0, replaced, start, count);
   }
 

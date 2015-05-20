@@ -1,16 +1,15 @@
 // (c) Jim Blackler (jimblacker@gmail.com)
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
-#include <algorithm>
 #include "shell_sort.h"
 
 namespace comparisonSortInPlace {
 
-static void insertionSortWithOffset(int *start, int *end, int offset) {
-  for (int *fwd = start + offset; fwd < end; fwd += offset) {
+static inline void insertionSortWithOffset(int *start, int *end, int offset) {
+  for (int *fwd = start + offset; fwd < end; fwd++) {
     int value = *fwd;
     int *rev;
-    for (rev = fwd; rev > start; rev -= offset) {
+    for (rev = fwd; rev >= start + offset; rev -= offset) {
       int v = rev[-offset];
       if (v <= value)
         break;
@@ -21,14 +20,11 @@ static void insertionSortWithOffset(int *start, int *end, int offset) {
 }
 
 void shellSort(int *start, int *end) {
-  float decline = 0.175f;
-  for (unsigned long offset = (unsigned long) (decline * (end - start));
-       offset > 1; offset *= decline) {
-    for (int s = 0; s < offset; s++) {
-      insertionSortWithOffset(start + s, end, (int) offset);
-    }
+  auto length = end - start;
+  int divide = 9;
+  for (auto offset = length / divide; offset > 1; offset /= divide) {
+    insertionSortWithOffset(start, end, (int) offset);
   }
   insertionSortWithOffset(start, end, 1);
-
 }
 }
