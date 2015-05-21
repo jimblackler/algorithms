@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include "stddef.h"
-
 namespace comparisonSortInPlace {
 
 template <typename T>

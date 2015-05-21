@@ -2,7 +2,6 @@
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
 #include <thread>
-#include <stddef.h>
 #include "quicksort_swap.h"
 
 namespace comparisonSortInPlace {

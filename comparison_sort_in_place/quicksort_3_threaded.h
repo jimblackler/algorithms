@@ -4,7 +4,6 @@
 #include "quicksort_3.h"
 
 #include <thread>
-#include <stddef.h>
 
 namespace comparisonSortInPlace {
 

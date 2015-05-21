@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "stddef.h"
 #include "shell_sort.h"
 
 namespace comparisonSortInPlace {
