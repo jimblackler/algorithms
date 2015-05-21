@@ -23,7 +23,7 @@ void insertionSortWithOffset(T *start, T *end, I offset) {
 template <typename T>
 void shellSort(T *start, T *end) {
   auto length = end - start;
-  T divide = 9;
+  int divide = 9;
   for (auto offset = length / divide; offset > 1; offset /= divide) {
     insertionSortWithOffset(start, end, (int) offset);
   }
