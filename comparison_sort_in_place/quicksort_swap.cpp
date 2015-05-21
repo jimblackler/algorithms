@@ -5,19 +5,20 @@
 
 namespace comparisonSortInPlace {
 
-void quicksortSwap(int *start, int *end) {
+template<typename T>
+void quicksortSwap(T *start, T *end) {
   auto length = end - start;
   if (length <= 1)
     return;
 
-  int pivot = start[length / 2];
-  int *lt = start;
-  int *gt = end;
+  T pivot = start[length / 2];
+  T *lt = start;
+  T *gt = end;
 
   while (lt < gt) {
-    int a = *lt;
+    T a = *lt;
     if (a >= pivot) {
-      int b;
+      T b;
       do {
         gt--;
         if (gt == lt)
@@ -33,7 +34,7 @@ void quicksortSwap(int *start, int *end) {
 
   escape:;
   if (start == lt) {
-    for (int *ptr = start; ptr < end; ptr++) {
+    for (T *ptr = start; ptr < end; ptr++) {
       if (*ptr == pivot) {
         *ptr = *lt;
         *lt++ = pivot;

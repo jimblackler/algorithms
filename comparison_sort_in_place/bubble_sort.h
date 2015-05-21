@@ -1,10 +1,18 @@
 // (c) Jim Blackler (jimblacker@gmail.com)
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
-#include "stddef.h"
+#include <stddef.h>
 
 namespace comparisonSortInPlace {
 
-extern void bubbleSort(int *start, int *end);
+template <typename T>
+void bubbleSort(T *start, T *end) {
+  for (T *endPtr = end; end >= start; end--) {
+    for (T *ptr = start; &ptr[1] < endPtr; ptr++) {
+      if (*ptr > ptr[1])
+        std::swap(*ptr, ptr[1]);
+    }
+  }
+}
 
 }
