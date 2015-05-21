@@ -8,7 +8,7 @@
 namespace comparisonSortInPlace {
 
 template<typename T>
-void quicksort3Threaded(T *start, T *end, T minSize) {
+void quicksort3Threaded(T *start, T *end, int minSize) {
   auto length = end - start;
   if (length <= minSize)
     return quicksort3(start, end);

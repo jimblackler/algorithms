@@ -8,7 +8,7 @@
 namespace comparisonSortInPlace {
 
 template <typename T>
-void quicksortSwapPlusShellThreaded(T *start, T *end, T minSize) {
+void quicksortSwapPlusShellThreaded(T *start, T *end, int minSize) {
   auto length = end - start;
   if (length <= minSize)
     return quicksortSwapPlusShell(start, end);

@@ -5,8 +5,8 @@
 
 namespace comparisonSortInPlace {
 
-template <typename T>
-void insertionSortWithOffset(T *start, T *end, T offset) {
+template <typename T, typename I>
+void insertionSortWithOffset(T *start, T *end, I offset) {
   for (T *fwd = start + offset; fwd < end; fwd++) {
     T value = *fwd;
     T *rev;
@@ -25,7 +25,7 @@ void shellSort(T *start, T *end) {
   auto length = end - start;
   T divide = 9;
   for (auto offset = length / divide; offset > 1; offset /= divide) {
-    insertionSortWithOffset(start, end, (T) offset);
+    insertionSortWithOffset(start, end, (int) offset);
   }
   insertionSortWithOffset(start, end, 1);
 }

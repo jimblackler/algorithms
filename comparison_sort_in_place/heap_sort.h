@@ -4,7 +4,7 @@
 namespace comparisonSortInPlace {
 
 template<typename I, typename T>
-void siftDown(I position, T value, T *start, T count) {
+void siftDown(I position, T value, T *start, I count) {
 
   while (true) {
     I childPosition = 2 * position + 1;
@@ -37,9 +37,9 @@ void siftDown(I position, T value, T *start, T count) {
 
 template<typename T>
 void heapSort(T *start, T *end) {
-  T count = (T) (end - start);
+  auto count = end - start;
 
-  for (T k = (count - 2) / 2; k >= 0; k--) {
+  for (auto k = (count - 2) / 2; k >= 0; k--) {
     siftDown(k, start[k], start, count);
   }
 
@@ -48,7 +48,7 @@ void heapSort(T *start, T *end) {
     T replaced = start[count];
     start[count] = maximal;
 
-    siftDown(0, replaced, start, count);
+    siftDown(0, replaced, start, (int) count);
   }
 }
 

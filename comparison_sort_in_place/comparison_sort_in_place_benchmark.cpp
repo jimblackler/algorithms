@@ -21,14 +21,15 @@
 #include <sstream>
 #include <stdlib.h>
 
+template<typename T>
 class TestData0 {
 
-  int *_array;
+  T *_array;
   size_t _length;
 
 public:
 
-  const int *array() const {
+  const T *array() const {
     return _array;
   }
 
@@ -40,11 +41,11 @@ public:
     _length = (size_t const) size;
     seed += _length;
     srand(seed);
-    _array = (int *) malloc(_length * sizeof(int));
+    _array = (T *) malloc(_length * sizeof(T));
     for (size_t i = 0; i < _length; i++) {
       int r = rand();
       srand((unsigned int) (r % _length));
-      _array[i] = rand();
+      _array[i] = (T) rand();
       srand((unsigned int) (r + seed + i));
     }
 
@@ -56,12 +57,13 @@ public:
 
 };
 
+template<typename T>
 class Output0 {
-  int *_out;
+  T *_out;
   size_t _length;
 
 public:
-  int *out() const {
+  T *out() const {
     return _out;
   }
 
@@ -69,11 +71,12 @@ public:
     return _length;
   }
 
-  Output0(const TestData0 *testData) {
+  Output0(const TestData0<T> *testData) {
     _length = testData->length();
-    _out = (int *) malloc(testData->length() * sizeof(int));
+    _out = (T *) malloc(_length * sizeof(T));
+    const T *array = testData->array();
     for (size_t i = 0; i < _length; i++)
-      _out[i] = testData->array()[i];
+      _out[i] = array[i];
   }
 
   ~Output0() {
@@ -86,6 +89,7 @@ public:
     if (_length > right._length)
       return false;
     for (int i = 0; i < _length; i++) {
+
       if (_out[i] < right._out[i]) {
         return true;
       } else if (_out[i] > right._out[i]) {
@@ -96,16 +100,16 @@ public:
   }
 };
 
-int compare(const void *a, const void *b) {
-  return *(int *) a - *(int *) b;
-}
+template<typename T>
+class ComparisonSortInPlaceBenchmark : public Benchmark<TestData0<T>, Output0<T>> {
 
-class ComparisonSortInPlaceBenchmark : public Benchmark<TestData0, Output0> {
+  static int compare(const void *a, const void *b) {
+    return *(T *) a - *(T *) b;
+  }
 
 protected:
-  void add(const char *name,
-      void (*method)(int *start, int *end)) {
-    this->addMethod(name, [=](const TestData0 &data, Output0 *output) {
+  void add(const char *name, void (*method)(T *start, T *end)) {
+    this->addMethod(name, [=](const TestData0<T> &data, Output0<T> *output) {
         method(output->out(), output->out() + output->length());
     });
   }
@@ -114,27 +118,28 @@ public:
 
   ComparisonSortInPlaceBenchmark() {
 
-    this->addMethod("std::sort", [=](const TestData0 &data, Output0 *output) {
-        std::sort(output->out(), output->out() + output->length());
+    this->addMethod("std::sort", [](const TestData0<T> &data, Output0<T> *output) {
+        T *array = output->out();
+        std::sort(array, array + output->length());
     });
 
-    this->addMethod("std::sort_heap", [=](const TestData0 &data, Output0 *output) {
+    this->addMethod("std::sort_heap", [](const TestData0<T> &data, Output0<T> *output) {
         std::make_heap(output->out(), output->out() + output->length());
         std::sort_heap(output->out(), output->out() + output->length());
     });
 
 #ifdef __APPLE__
-    this->addMethod("<heapsort>", [=](const TestData0 &data, Output0 *output) {
-        heapsort(output->out(), output->length(), sizeof(int), compare);
+    this->addMethod("<heapsort>", [](const TestData0<T> &data, Output0<T> *output) {
+        heapsort(output->out(), output->length(), sizeof(T), compare);
     });
 
-    this->addMethod("<mergesort>", [=](const TestData0 &data, Output0 *output) {
-        mergesort(output->out(), output->length(), sizeof(int), compare);
+    this->addMethod("<mergesort>", [](const TestData0<T> &data, Output0<T> *output) {
+        mergesort(output->out(), output->length(), sizeof(T), compare);
     });
 #endif
 
-    this->addMethod("std::qsort", [=](const TestData0 &data, Output0 *output) {
-        std::qsort(output->out(), output->length(), sizeof(int), compare);
+    this->addMethod("std::qsort", [](const TestData0<T> &data, Output0<T> *output) {
+        std::qsort(output->out(), output->length(), sizeof(T), compare);
     });
 
     using namespace comparisonSortInPlace;
@@ -152,17 +157,18 @@ public:
     add("quicksortSwap", quicksortSwap);
     add("quicksortSwapPlusShell", quicksortSwapPlusShell);
 
-    this->addMethod("quicksortSwapThreaded", [=](const TestData0 &data, Output0 *output) {
+    this->addMethod("quicksortSwapThreaded", [](const TestData0<T> &data, Output0<T> *output) {
         quicksortSwapThreaded(output->out(), output->out() + output->length(),
             std::max(5000, (int) (0.04 * output->length())));
     });
 
-    this->addMethod("quicksortSwapPlusShellThreaded", [=](const TestData0 &data, Output0 *output) {
-        quicksortSwapPlusShellThreaded(output->out(), output->out() + output->length(),
-            std::max(5000, (int) (0.04 * output->length())));
-    });
+    this->addMethod("quicksortSwapPlusShellThreaded",
+        [](const TestData0<T> &data, Output0<T> *output) {
+            quicksortSwapPlusShellThreaded(output->out(), output->out() + output->length(),
+                std::max(5000, (int) (0.04 * output->length())));
+        });
 
-    this->addMethod("quicksort3Threaded", [=](const TestData0 &data, Output0 *output) {
+    this->addMethod("quicksort3Threaded", [](const TestData0<T> &data, Output0<T> *output) {
         quicksort3Threaded(output->out(), output->out() + output->length(),
             std::max(5000, (int) (0.04 * output->length())));
     });
@@ -172,10 +178,10 @@ public:
 
 
 void comparisonSortInPlaceBenchmark() {
-  ComparisonSortInPlaceBenchmark benchmark;
-  int samples = 75;
+  ComparisonSortInPlaceBenchmark<char> benchmark;
+  int samples = 120;
   int min = 100;
-  int max = (int) 2e5;
+  int max = (int) 1e6;
   int distribution = 2;
   bool rounded = true;
   int cap = max * 125;
