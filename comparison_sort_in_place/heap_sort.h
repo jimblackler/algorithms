@@ -3,17 +3,17 @@
 
 namespace comparisonSortInPlace {
 
-template<typename T>
-void siftDown(T position, T value, T *start, T count) {
+template<typename I, typename T>
+void siftDown(I position, T value, T *start, T count) {
 
   while (true) {
-    T childPosition = 2 * position + 1;
+    I childPosition = 2 * position + 1;
     if (childPosition >= count)
       break;  // No children.
 
     T childValue = start[childPosition];
 
-    T rightChildPosition = childPosition + 1;
+    I rightChildPosition = childPosition + 1;
     // Right child exists?
     if (rightChildPosition < count) {
       T rightChildValue = start[rightChildPosition];
