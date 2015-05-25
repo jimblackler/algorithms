@@ -5,28 +5,24 @@
 
 namespace comparisonSortInPlace {
 
-template<typename T>
-void quicksort3PlusShell(T *start, T *end) {
+template<typename T, typename F>
+void quicksort3PlusShell(T *start, T *end, F less) {
   auto length = end - start;
   if (length <= 250)
-    return shellSort(start, end);
-
+    return shellSort(start, end, less);
   T pivot = start[length / 2];
-
   T *a = start;  // [start, a) is <pivot region
   T *b = start;  // [b, ptr) is >pivot region
   for (T *ptr = start; ptr < end; ptr++) {
-    T v = *ptr;
-    if (v > pivot)
+    if (less(pivot, *ptr))
       continue;
-    *ptr = *b++;  // >pivot region shifted
-    if (v != pivot)
-      *a++ = v;  // <pivot region extended
+    T v = std::move(*ptr);
+    *ptr = std::move(*b++);  // >pivot region shifted
+    if (less(v, pivot))
+      *a++ = std::move(v);  // <pivot region extended
   }
-  for (T *ptr = a; ptr < b; ptr++)
-    *ptr = pivot;  // Fill =pivot region
-  quicksort3PlusShell(start, a);  // Sort <pivot region
-  quicksort3PlusShell(b, end);  // Sort >pivot region
-
+  std::fill(a, b, pivot);
+  quicksort3PlusShell(start, a, less);  // Sort <pivot region
+  quicksort3PlusShell(b, end, less);  // Sort >pivot region
 }
 }

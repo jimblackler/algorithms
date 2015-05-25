@@ -6,47 +6,38 @@
 
 namespace comparisonSortInPlace {
 
-template<typename T>
-void quicksortSwapThreaded(T *start, T *end, int minSize) {
+template<typename T, typename F>
+void quicksortSwapThreaded(T *start, T *end, F less, int minSize) {
   auto length = end - start;
   if (length <= minSize)
-    return quicksortSwap(start, end);
+    return quicksortSwap(start, end, less);
 
   T pivot = start[length / 2];
-  T *lt = start;
+  T *lt;
   T *gt = end;
-
-  while (lt < gt) {
-    T a = *lt;
-    if (a >= pivot) {
-      T b;
-      do {
-        gt--;
-        if (gt == lt)
-          goto escape;
-        b = *gt;
-      } while (b >= pivot);
-
-      *lt = b;
-      *gt = a;
-    }
-    lt++;
+  for (lt = start; lt < gt; lt++) {
+    if (less(*lt, pivot))
+      continue;
+    do {
+      gt--;
+      if (gt == lt)
+        goto escape;
+    } while (!less(*gt, pivot));
+    std::swap(*lt, *gt);
   }
 
   escape:;
   if (start == lt) {
     for (T *ptr = start; ptr < end; ptr++) {
-      if (*ptr != pivot)
-        continue;
-      *ptr = *lt;
-      *lt++ = pivot;
+      if (!less(pivot, *ptr))
+        std::swap(*ptr, *lt++);
     }
-    quicksortSwapThreaded(lt, end, minSize);  // Sort <pivot region
+    quicksortSwapThreaded(lt, end, less, minSize);
   } else {
     std::thread t1([=]() {
-        quicksortSwapThreaded(start, lt, minSize);  // Sort <pivot region
+        quicksortSwapThreaded(start, lt, less, minSize);
     });
-    quicksortSwapThreaded(lt, end, minSize);
+    quicksortSwapThreaded(lt, end, less, minSize);
     t1.join();
   }
 }

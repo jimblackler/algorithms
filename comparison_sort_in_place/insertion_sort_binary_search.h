@@ -9,17 +9,21 @@
 namespace comparisonSortInPlace {
 
 template<typename T, typename F>
-void insertionSort(T *start, T *end, F less) {
-
+void insertionSortBinarySearch(T *start, T *end, F less) {
   for (T *fwd = start + 1; fwd < end; fwd++) {
     T value = std::move(*fwd);
-    T *rev;
-    for (rev = fwd; rev >= start + 1; rev -= 1) {
-      if (!less(value, rev[-1]))
-        break;
-      *rev = std::move(rev[-1]);
+
+    T *max = fwd;
+    T *min = start;
+    while (min != max) {
+      T *ptr = min + (max - min) / 2;
+      if (less(*ptr, value))
+        min = ptr + 1;
+      else
+        max = ptr;
     }
-    *rev = value;
+    std::move_backward(min, fwd, fwd + 1);
+    *min = value;
   }
 }
 

@@ -8,13 +8,12 @@
 #include "bubble_sort.h"
 #include "heap_sort.h"
 #include "insertion_sort.h"
+#include "insertion_sort_binary_search.h"
 #include "quicksort.h"
 #include "quicksort_3.h"
 #include "quicksort_3_plus_shell.h"
-#include "quicksort_3_threaded.h"
 #include "quicksort_swap.h"
 #include "quicksort_swap_plus_shell.h"
-#include "quicksort_swap_plus_shell_threaded.h"
 #include "quicksort_swap_threaded.h"
 #include "shell_sort.h"
 
@@ -32,13 +31,19 @@ void generate<std::string>(std::string &v) {
 }
 
 template<typename T>
-int compare(const void *a, const void *b) {
-  return *(T *) a - *(T *) b;
-}
+auto less = [](const T &a, const T &b) {
+  return a < b;
+};
 
-template<>
-int compare<std::string>(const void *a, const void *b) {
-  return ((std::string *) a)->compare(*((std::string *) b));
+template<typename T>
+int compare(const void *a, const void *b) {
+  T *_a = (T *) a;
+  T *_b = (T *) b;
+  if (less<T>(*_a, *_b))
+    return -1;
+  if (less<T>(*_b, *_a))
+    return 1;
+  return 0;
 }
 
 template<typename T>
@@ -68,7 +73,6 @@ public:
       generate(_array[i]);
       srand((unsigned int) (r + seed + i));
     }
-
   }
 
   ~TestData0() {
@@ -108,11 +112,11 @@ public:
       return true;
     if (_length > right._length)
       return false;
-    for (int i = 0; i < _length; i++) {
 
-      if (_out[i] < right._out[i]) {
+    for (int i = 0; i < _length; i++) {
+      if (less<T>(_out[i], right._out[i])) {
         return true;
-      } else if (_out[i] > right._out[i]) {
+      } else if (less<T>(right._out[i], _out[i])) {
         return false;
       }
     }
@@ -123,27 +127,33 @@ public:
 template<typename T>
 class ComparisonSortInPlaceBenchmark : public Benchmark<TestData0<T>, Output0<T>> {
 
-protected:
-  void add(const char *name, void (*method)(T *start, T *end)) {
-    this->addMethod(name, [=](const TestData0<T> &data, Output0<T> *output) {
-        method(output->out(), output->out() + output->length());
-    });
-  }
-
 public:
+  std::string isValid(const TestData0<T> &testData, const Output0<T> &output) const {
+    auto length = output.length();
+
+    if (testData.length() != length) {
+      return "Lengths are different";
+    }
+    auto *array = output.out();
+
+    for (int i = 1; i != length; i++) {
+      if (less<T>(array[i], array[i - 1])) {
+        return "Element found out of order";
+      }
+    }
+    return std::string();
+  }
 
   ComparisonSortInPlaceBenchmark() {
 
     this->addMethod("std::sort", [](const TestData0<T> &data, Output0<T> *output) {
-        T *array = output->out();
-        std::sort(array, array + output->length());
+        std::sort(output->out(), output->out() + output->length(), less<T>);
     });
 
     this->addMethod("std::sort_heap", [](const TestData0<T> &data, Output0<T> *output) {
-        std::make_heap(output->out(), output->out() + output->length());
-        std::sort_heap(output->out(), output->out() + output->length());
+        std::make_heap(output->out(), output->out() + output->length(), less<T>);
+        std::sort_heap(output->out(), output->out() + output->length(), less<T>);
     });
-
 #ifdef __APPLE__
     this->addMethod("<heapsort>", [](const TestData0<T> &data, Output0<T> *output) {
         heapsort(output->out(), output->length(), sizeof(T), compare<T>);
@@ -160,46 +170,50 @@ public:
 
     using namespace comparisonSortInPlace;
 
-    add("bubbleSort", bubbleSort);
-
-    add("insertionSort", insertionSort);
-    add("shellSort", shellSort);
-
-    add("heapSort", heapSort);
-
-    add("quicksort", quicksort);
-    add("quicksort3", quicksort3);
-    add("quicksort3PlusShell", quicksort3PlusShell);
-    add("quicksortSwap", quicksortSwap);
-    add("quicksortSwapPlusShell", quicksortSwapPlusShell);
-
+    this->addMethod("bubbleSort", [=](const TestData0<T> &data, Output0<T> *output) {
+        bubbleSort(output->out(), output->out() + output->length(), less<T>);
+    });
+    this->addMethod("insertionSort", [=](const TestData0<T> &data, Output0<T> *output) {
+        insertionSort(output->out(), output->out() + output->length(), less<T>);
+    });
+    this->addMethod("insertionSortBinarySearch", [=](const TestData0<T> &data, Output0<T> *output) {
+        insertionSortBinarySearch(output->out(), output->out() + output->length(), less<T>);
+    });
+    this->addMethod("shellSort", [=](const TestData0<T> &data, Output0<T> *output) {
+        shellSort(output->out(), output->out() + output->length(), less<T>);
+    });
+    this->addMethod("heapSort", [=](const TestData0<T> &data, Output0<T> *output) {
+        heapSort(output->out(), output->out() + output->length(), less<T>);
+    });
+    this->addMethod("quicksort", [=](const TestData0<T> &data, Output0<T> *output) {
+        quicksort(output->out(), output->out() + output->length(), less<T>);
+    });
+    this->addMethod("quicksort3", [=](const TestData0<T> &data, Output0<T> *output) {
+        quicksort3(output->out(), output->out() + output->length(), less<T>);
+    });
+    this->addMethod("quicksort3PlusShell", [=](const TestData0<T> &data, Output0<T> *output) {
+        quicksort3PlusShell(output->out(), output->out() + output->length(), less<T>);
+    });
+    this->addMethod("quicksortSwap", [=](const TestData0<T> &data, Output0<T> *output) {
+        quicksortSwap(output->out(), output->out() + output->length(), less<T>);
+    });
+    this->addMethod("quicksortSwapPlusShell", [=](const TestData0<T> &data, Output0<T> *output) {
+        quicksortSwapPlusShell(output->out(), output->out() + output->length(), less<T>);
+    });
     this->addMethod("quicksortSwapThreaded", [](const TestData0<T> &data, Output0<T> *output) {
-        quicksortSwapThreaded(output->out(), output->out() + output->length(),
+        quicksortSwapThreaded(output->out(), output->out() + output->length(), less<T>,
             std::max(5000, (int) (0.04 * output->length())));
     });
-
-    this->addMethod("quicksortSwapPlusShellThreaded",
-        [](const TestData0<T> &data, Output0<T> *output) {
-            quicksortSwapPlusShellThreaded(output->out(), output->out() + output->length(),
-                std::max(5000, (int) (0.04 * output->length())));
-        });
-
-    this->addMethod("quicksort3Threaded", [](const TestData0<T> &data, Output0<T> *output) {
-        quicksort3Threaded(output->out(), output->out() + output->length(),
-            std::max(5000, (int) (0.04 * output->length())));
-    });
-
   }
 };
 
-
 void comparisonSortInPlaceBenchmark() {
   ComparisonSortInPlaceBenchmark<std::string> benchmark;
-  int samples = 120;
-  int min = 100;
-  int max = (int) 1e6;
+  int samples = 100;
+  int min = 1;
+  int max = (int) 2e5;
   int distribution = 2;
   bool rounded = true;
-  int cap = max * 150;
+  int cap = max * 800;
   benchmark.run(samples, min, max, distribution, rounded, cap, "Microseconds");
 }

@@ -3,8 +3,8 @@
 
 namespace comparisonSortInPlace {
 
-template<typename I, typename T>
-void siftDown(I position, T value, T *start, I count) {
+template<typename I, typename F, typename T>
+void siftDown(I position, T value, T *start, I count, F less) {
 
   while (true) {
     I childPosition = 2 * position + 1;
@@ -18,14 +18,14 @@ void siftDown(I position, T value, T *start, I count) {
     if (rightChildPosition < count) {
       T rightChildValue = start[rightChildPosition];
       // And is greater than left?
-      if (rightChildValue > childValue) {
+      if (less(childValue, rightChildValue )) {
         // Select this child.
         childPosition = rightChildPosition;
         childValue = rightChildValue;
       }
     }
 
-    if (value >= childValue)
+    if (!less(value, childValue))
       break;  // Heap constraint met.
 
     // Promote child to parent, then repeat.
@@ -35,12 +35,12 @@ void siftDown(I position, T value, T *start, I count) {
   start[position] = value;
 }
 
-template<typename T>
-void heapSort(T *start, T *end) {
+template<typename T, typename F>
+void heapSort(T *start, T *end, F less) {
   auto count = end - start;
 
   for (auto k = (count - 2) / 2; k >= 0; k--) {
-    siftDown(k, start[k], start, count);
+    siftDown(k, start[k], start, count, less);
   }
 
   while (count--) {
@@ -48,7 +48,7 @@ void heapSort(T *start, T *end) {
     T replaced = start[count];
     start[count] = maximal;
 
-    siftDown(0, replaced, start, (int) count);
+    siftDown(0, replaced, start, (int) count, less);
   }
 }
 

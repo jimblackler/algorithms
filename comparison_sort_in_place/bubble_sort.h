@@ -5,11 +5,11 @@
 
 namespace comparisonSortInPlace {
 
-template <typename T>
-void bubbleSort(T *start, T *end) {
+template <typename T, typename F>
+void bubbleSort(T *start, T *end, F less) {
   for (T *endPtr = end; end >= start; end--) {
     for (T *ptr = start; &ptr[1] < endPtr; ptr++) {
-      if (*ptr > ptr[1])
+      if (less(ptr[1], *ptr))
         std::swap(*ptr, ptr[1]);
     }
   }

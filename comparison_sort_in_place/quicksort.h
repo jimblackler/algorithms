@@ -3,32 +3,27 @@
 
 namespace comparisonSortInPlace {
 
-template <typename T>
-void quicksort(T *start, T *end) {
+template <typename T, typename F>
+void quicksort(T *start, T *end, F less) {
   auto length = end - start;
   if (length <= 1)
     return;
   T pivot = start[length / 2];
   T *divider = start;
   for (T *ptr = start; ptr < end; ptr++) {
-    T v = *ptr;
-    if (v >= pivot)
-      continue;
-    *ptr = *divider;
-    *divider++ = v;
+    if (less(*ptr, pivot))
+      std::swap(*ptr, *divider++);
   }
 
   if (start == divider) {
     for (T *ptr = start; ptr < end; ptr++) {
-      if (*ptr != pivot)
-        continue;
-      *ptr = *divider;
-      *divider++ = pivot;
+      if (!less(pivot, *ptr))
+        std::swap(*ptr, *divider++);
     }
   } else {
-    quicksort(start, divider);
+    quicksort(start, divider, less);
   }
 
-  quicksort(divider, end);
+  quicksort(divider, end, less);
 }
 }

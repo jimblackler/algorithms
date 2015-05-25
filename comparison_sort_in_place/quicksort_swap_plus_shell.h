@@ -3,50 +3,41 @@
 
 #pragma once
 
-#include "shell_sort.h"
+#include "insertion_sort.h"
+
+#include <type_traits>
 
 namespace comparisonSortInPlace {
 
-template<typename T>
-void quicksortSwapPlusShell(T *start, T *end) {
+template<typename T, typename F>
+void quicksortSwapPlusShell(T *start, T *end, F less) {
   auto length = end - start;
-  if (length <= 250)
-    return shellSort(start, end);
-
+  if (length <= 500)
+    return shellSort(start, end, less);
   T pivot = start[length / 2];
-  T *lt = start;
+  T *lt;
   T *gt = end;
-
-  while (lt < gt) {
-    T a = *lt;
-    if (a >= pivot) {
-      T b;
-      do {
-        gt--;
-        if (gt == lt)
-          goto escape;
-        b = *gt;
-      } while (b >= pivot);
-
-      *lt = b;
-      *gt = a;
-    }
-    lt++;
+  for (lt = start; lt < gt; lt++) {
+    if (less(*lt, pivot))
+      continue;
+    do {
+      gt--;
+      if (gt == lt)
+        goto escape;
+    } while (!less(*gt, pivot));
+    std::swap(*lt, *gt);
   }
 
   escape:;
-
   if (start == lt) {
     for (T *ptr = start; ptr < end; ptr++) {
-      if (*ptr != pivot)
-        continue;
-      *ptr = *lt;
-      *lt++ = pivot;
+      if (!less(pivot, *ptr))
+        std::swap(*ptr, *lt++);
     }
   } else {
-    quicksortSwapPlusShell(start, lt);
+    quicksortSwapPlusShell(start, lt, less);
   }
-  quicksortSwapPlusShell(lt, end);
+  quicksortSwapPlusShell(lt, end, less);
 }
 
 }

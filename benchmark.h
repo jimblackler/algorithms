@@ -47,6 +47,13 @@ public:
     }
   };
 
+  // Returns an error string if the output is definitely invalid for the supplied test data.
+  // Returns a blank string if the output is not yet known to be invalid.
+  virtual std::string isValid(const TestData &testData, const Output &output) const {
+    // Override in individual benchmarks where relevant.
+    return std::string();
+  }
+
   void run(int samples, float min, float max, float distribution, bool rounded, int cap,
       const char *label) {
     std::vector<Column> columns;
@@ -98,10 +105,15 @@ public:
         auto after = timer->getTime();
 
         int y = (int) (after - before);
-
-        results.insert(std::make_pair(std::unique_ptr<const Output>(output), method.get()));
-        column.results[method.get()] = y;
-        if (y > cap) {
+        std::string error = isValid(testData, *output);
+        if (error.empty()) {
+          results.insert(std::make_pair(std::unique_ptr<const Output>(output), method.get()));
+          column.results[method.get()] = y;
+          if (y > cap) {
+            capped.insert(method.get());
+          }
+        } else {
+          printf("Method %s produced invalid output: %s\n", method->name.c_str(), error.c_str());
           capped.insert(method.get());
         }
       }
