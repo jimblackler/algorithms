@@ -27,7 +27,7 @@ class Benchmark {
 
   struct Column {
     float x;
-    std::map<const Method *, int> results;
+    std::map<const Method *, long long> results;
   };
 
   std::vector<std::shared_ptr<const Method>> methods;
@@ -104,7 +104,7 @@ public:
         invoker(testData, output);
         auto after = timer->getTime();
 
-        int y = (int) (after - before);
+        long long y = after - before;
         std::string error = isValid(testData, *output);
         if (error.empty()) {
           results.insert(std::make_pair(std::unique_ptr<const Output>(output), method.get()));
@@ -137,7 +137,7 @@ public:
       } else {
         for (auto result : column.results) {
           auto method = result.first;
-          printf("%s:\t%d\n", method->name.c_str(), result.second);
+          printf("%s:\t%qi\n", method->name.c_str(), result.second);
         }
         columns.push_back(column);
       }
@@ -176,8 +176,8 @@ public:
         if (column.results.find(method.get()) == column.results.end())
           continue;
 
-        int y = column.results[method.get()];
-        fprintf(gp, "%f %d\n", x, y);
+        long long y = column.results[method.get()];
+        fprintf(gp, "%f %qi\n", x, y);
       }
       fprintf(gp, "e\n");
       m++;
@@ -202,13 +202,13 @@ public:
         for (Column &column: columns) {
 
           // Find winner
-          int winner = std::numeric_limits<int32_t>::max();
+          long long winner = std::numeric_limits<long long>::max();
           for (auto pair: column.results) {
             winner = std::min(winner, pair.second);
           }
 
           if (column.results.find(method.get()) != column.results.end()) {
-            int y = column.results[method.get()];
+            long long y = column.results[method.get()];
             total += y;
             if (y == winner) {
               fprintf(h, "<td class='winner'>");
