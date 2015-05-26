@@ -18,7 +18,7 @@ public:
   long long getTime() {
     mach_timespec_t mts;
     clock_get_time(clock, &mts);
-    return mts.tv_sec * 1000000000 + mts.tv_nsec;
+    return 1000000000LL * mts.tv_sec + mts.tv_nsec;
   }
 };
 
