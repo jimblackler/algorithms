@@ -54,7 +54,7 @@ public:
     return std::string();
   }
 
-  void run(int samples, float min, float max, float distribution, bool rounded, int cap,
+  void run(int samples, float min, float max, float distribution, bool rounded, long cap,
       const char *label) {
     std::vector<Column> columns;
     std::set<const Method *> capped;
@@ -111,6 +111,7 @@ public:
           column.results[method.get()] = y;
           if (y > cap) {
             capped.insert(method.get());
+            printf("%s capped at %qi (> %d)\n", method->name.c_str(), y, cap);
           }
         } else {
           printf("Method %s produced invalid output: %s\n", method->name.c_str(), error.c_str());
@@ -159,7 +160,7 @@ public:
     int m = 0;
 
     fprintf(gp, "set xrange [%f:%f]\n", min, columns.back().x);
-    fprintf(gp, "set yrange [0:%d]\n", cap);
+    fprintf(gp, "set yrange [0:%li]\n", cap);
     fprintf(gp, "set ylabel \"%s\"\n", label);
 
     fprintf(gp, "plot ");
@@ -216,7 +217,7 @@ public:
               fprintf(h, "<td>");
             }
 
-            fprintf(h, "%d</td>", y);
+            fprintf(h, "%qi</td>", y);
 
           } else {
             all = false;
