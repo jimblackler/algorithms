@@ -24,6 +24,11 @@ void insertionSortWithOffset(T *start, T *end, F less, I offset) {
 template <typename T, typename F>
 void shellSort(T *start, T *end, F less) {
   auto length = end - start;
+  if (length <= 2) {
+    if (length == 2 && less(start[1], *start))
+      std::swap(*start, start[1]);
+    return;
+  }
   int divide = 9;
   for (auto offset = length / divide; offset > 1; offset /= divide) {
     insertionSortWithOffset(start, end, less, (int) offset);

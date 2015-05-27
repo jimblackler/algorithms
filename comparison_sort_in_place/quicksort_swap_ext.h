@@ -1,17 +1,19 @@
 // (c) Jim Blackler (jimblacker@gmail.com)
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
-#include <thread>
-#include "quicksort_swap.h"
+#pragma once
+
+#include <type_traits>
 
 namespace comparisonSortInPlace {
 
-template<typename T, typename F>
-void quicksortSwapThreaded(T *start, T *end, F less, int minSize) {
+template <typename T, typename Predicate, typename Size, typename Method>
+void quicksortSwapExt(T *start, T *end, Predicate less, Size minSize, Method nextMethod) {
   auto length = end - start;
-  if (length <= minSize)
-    return quicksortSwap(start, end, less);
-
+  if (length <= minSize) {
+    nextMethod(start, end);
+    return;
+  }
   T *lt;
   T *pivot = end - 1;
   std::swap(start[length / 2], *pivot);
@@ -34,16 +36,12 @@ void quicksortSwapThreaded(T *start, T *end, F less, int minSize) {
         std::swap(*ptr, *lt++);
       }
     }
-    quicksortSwapThreaded(lt, end, less, minSize);
   } else {
-
-    std::thread t1([=]() {
-        quicksortSwapThreaded(start, lt, less, minSize);
-    });
+    quicksortSwapExt(start, lt, less, minSize, nextMethod);
     std::swap(*pivot, *lt++);
-    quicksortSwapThreaded(lt, end, less, minSize);
-    t1.join();
   }
+  quicksortSwapExt(lt, end, less, minSize, nextMethod);
 }
 
-}
+
+};
