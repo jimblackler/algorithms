@@ -193,7 +193,7 @@ public:
       for (Column &column: columns) {
         fprintf(h, "<td>%g</td>", column.x);
       }
-      fprintf(h, "<td>Total</td></tr>");
+      fprintf(h, "<td>Total</td><td></td></tr>");
       for (auto method : methods) {
         std::string name;
         encodeHtml(method->name, name);
@@ -229,6 +229,7 @@ public:
         } else {
           fprintf(h, "<td></td>");
         }
+        fprintf(h, "<td>%s</td>", name.c_str());
         fprintf(h, "</tr>");
         m++;
       }
