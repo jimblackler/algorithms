@@ -6,11 +6,11 @@
 
 namespace comparisonSortInPlace {
 
-template<typename T, typename F>
-void quicksortSwapThreaded(T *start, T *end, F less, int minSize) {
+template <typename T, typename Predicate, typename Size, typename Method>
+void quicksortSwapThreaded(T *start, T *end, Predicate less, Size minSize, Size minSize2, Method nextMethod) {
   auto length = end - start;
   if (length <= minSize)
-    return quicksortSwap(start, end, less);
+    return quicksortSwap(start, end, less, minSize2, nextMethod);
 
   T *lt;
   T *pivot = end - 1;
@@ -34,14 +34,14 @@ void quicksortSwapThreaded(T *start, T *end, F less, int minSize) {
         std::swap(*ptr, *lt++);
       }
     }
-    quicksortSwapThreaded(lt, end, less, minSize);
+    quicksortSwapThreaded(lt, end, less, minSize, minSize2, nextMethod);
   } else {
 
     std::thread t1([=]() {
-        quicksortSwapThreaded(start, lt, less, minSize);
+        quicksortSwapThreaded(start, lt, less, minSize, minSize2, nextMethod);
     });
     std::swap(*pivot, *lt++);
-    quicksortSwapThreaded(lt, end, less, minSize);
+    quicksortSwapThreaded(lt, end, less, minSize, minSize2, nextMethod);
     t1.join();
   }
 }

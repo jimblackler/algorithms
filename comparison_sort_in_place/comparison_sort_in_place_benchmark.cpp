@@ -9,10 +9,10 @@
 #include "heap_sort.h"
 #include "insertion_sort.h"
 #include "insertion_sort_binary_search.h"
+#include "max_two.h"
 #include "quicksort.h"
 #include "quicksort_3.h"
 #include "quicksort_swap.h"
-#include "quicksort_swap_ext.h"
 #include "quicksort_swap_threaded.h"
 #include "shell_sort.h"
 
@@ -67,8 +67,10 @@ public:
     srand(seed);
     _array = new T[_length];
     for (size_t i = 0; i < _length; i++) {
-      int r = rand();
-      srand((unsigned int) (r % _length));
+      auto r = rand();
+      auto t = pow((float) r / RAND_MAX, 2);
+
+      srand((unsigned int) (t * _length));
       generate(_array[i]);
       srand((unsigned int) (r + seed + i));
     }
@@ -192,55 +194,65 @@ public:
 
     this->addMethod("quicksort", [=](const TestData0<T> &data, Output0<T> *output) {
         quicksort(output->out(), output->out() + output->length(), less<T>,
-            1, [=](T *start, T *end) {
+            2, [=](T *start, T *end) {
+                max_two(start, end, less<T>);
             });
     });
 
     this->addMethod("quicksort3", [=](const TestData0<T> &data, Output0<T> *output) {
         quicksort3(output->out(), output->out() + output->length(), less<T>,
-            1, [=](T *start, T *end) {
-            });
+            2, [=](T *start, T *end) {
+                max_two(start, end, less<T>);
+            });;
     });
 
-    this->addMethod("quicksortSwapPlusShell@160", [=](const TestData0<T> &data, Output0<T> *output) {
-        quicksortSwapExt(output->out(), output->out() + output->length(), less<T>,
+    this->addMethod("quicksortPlusShell@160", [=](const TestData0<T> &data, Output0<T> *output) {
+        quicksort(output->out(), output->out() + output->length(), less<T>,
             160, [=](T *start, T *end) {
                 shellSort(start, end, less<T>);
             });
     });
 
-    this->addMethod("quicksortSwapPlusShell@7", [=](const TestData0<T> &data, Output0<T> *output) {
-        quicksortSwapExt(output->out(), output->out() + output->length(), less<T>,
-            7, [=](T *start, T *end) {
+    this->addMethod("quicksortSwapPlusShell@160", [=](const TestData0<T> &data, Output0<T> *output) {
+        quicksortSwap(output->out(), output->out() + output->length(), less<T>,
+            160, [=](T *start, T *end) {
                 shellSort(start, end, less<T>);
             });
     });
 
-    this->addMethod("quicksortSwapPlusInsertion@7", [=](const TestData0<T> &data, Output0<T> *output) {
-        quicksortSwapExt(output->out(), output->out() + output->length(), less<T>,
-            7, [=](T *start, T *end) {
-                insertionSort(start, end, less<T>);
-            });
-    });
-
     this->addMethod("quicksortSwap", [=](const TestData0<T> &data, Output0<T> *output) {
-        quicksortSwap(output->out(), output->out() + output->length(), less<T>);
+        quicksortSwap(output->out(), output->out() + output->length(), less<T>,
+            2, [=](T *start, T *end) {
+                max_two(start, end, less<T>);
+            });
     });
 
     this->addMethod("quicksortSwapThreaded", [](const TestData0<T> &data, Output0<T> *output) {
         quicksortSwapThreaded(output->out(), output->out() + output->length(), less<T>,
-            std::max(5000, (int) (0.04 * output->length())));
+            std::max(5000, (int) (0.04 * output->length())),
+            2, [=](T *start, T *end) {
+                max_two(start, end, less<T>);
+            });
     });
+
+    this->addMethod("quicksortSwapThreadedShell@160", [](const TestData0<T> &data, Output0<T> *output) {
+        quicksortSwapThreaded(output->out(), output->out() + output->length(), less<T>,
+            std::max(5000, (int) (0.04 * output->length())),
+            160, [=](T *start, T *end) {
+                shellSort(start, end, less<T>);
+            });
+    });
+
   }
 };
 
 void comparisonSortInPlaceBenchmark() {
   ComparisonSortInPlaceBenchmark<std::string> benchmark;
-  int samples = 50;
+  int samples = 100;
   int min = 1;
-  long max = (long) 1e7;
+  long max = (long) 1e6;
   int distribution = 2;
   bool rounded = true;
-  long cap = max * 200;
+  long cap = max * 500;
   benchmark.run(samples, min, max, distribution, rounded, cap, "Microseconds");
 }

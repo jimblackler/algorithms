@@ -5,20 +5,28 @@
 
 #include <type_traits>
 
+#include "median_3.h"
+#include "median_5.h"
+
 namespace comparisonSortInPlace {
 
-template <typename T, typename Predicate>
-void quicksortSwap(T *start, T *end, Predicate less) {
+template <typename T, typename Predicate, typename Size, typename Method>
+void quicksortSwap(T *start, T *end, Predicate less, Size minSize, Method nextMethod) {
   auto length = end - start;
-  if (length <= 2) {
-    if (length == 2 && less(start[1], *start))
-      std::swap(*start, start[1]);
+  if (length <= minSize) {
+    nextMethod(start, end);
     return;
   }
-  T *lt;
+
   T *pivot = end - 1;
-  std::swap(start[length / 2], *pivot);
+  T *c = start + length / 2;
+  if (length < 40)
+    std::swap(*median3(less, c - 1), *pivot);
+  else
+    std::swap(*median5(less, c - 2), *pivot);
+
   T *ge = pivot;
+  T *lt;
   for (lt = start; lt < ge; lt++) {
     if (less(*lt, *pivot))
       continue;
@@ -32,16 +40,16 @@ void quicksortSwap(T *start, T *end, Predicate less) {
 
   escape:;
   if (start == lt) {
-    for (T *ptr = start; ptr < end; ptr++) {
+    for (T *ptr = lt; ptr < pivot; ptr++) {
       if (!less(*pivot, *ptr)) {
         std::swap(*ptr, *lt++);
       }
     }
   } else {
-    quicksortSwap(start, lt, less);
-    std::swap(*pivot, *lt++);
+    quicksortSwap(start, lt, less, minSize, nextMethod);
   }
-  quicksortSwap(lt, end, less);
+  std::swap(*pivot, *lt++);
+  quicksortSwap(lt, end, less, minSize, nextMethod);
 }
 
 };
