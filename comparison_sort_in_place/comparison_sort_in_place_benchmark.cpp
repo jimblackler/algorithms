@@ -20,13 +20,13 @@
 #include <stdlib.h>
 
 template<typename T>
-void generate(T &v) {
-  v = (T) rand();
+T generate() {
+  return (T) rand();
 }
 
 template<>
-void generate<std::string>(std::string &v) {
-  v = std::to_string(rand());
+std::string generate<std::string>() {
+  return std::to_string(rand());
 }
 
 template<typename T>
@@ -48,12 +48,12 @@ int compare(const void *a, const void *b) {
 template<typename T>
 class TestData0 {
 
-  T *_array;
+  std::vector<T> _array;
   size_t _length;
 
 public:
 
-  const T *array() const {
+  const std::vector<T> &array() const {
     return _array;
   }
 
@@ -65,19 +65,15 @@ public:
     _length = (size_t const) size;
     seed += _length;
     srand(seed);
-    _array = new T[_length];
+
     for (size_t i = 0; i < _length; i++) {
       auto r = rand();
-      auto t = pow((float) r / RAND_MAX, 2);
+      double t = pow((float) r / RAND_MAX, 2);
 
       srand((unsigned int) (t * _length));
-      generate(_array[i]);
+      _array.push_back(generate<T>());
       srand((unsigned int) (r + seed + i));
     }
-  }
-
-  ~TestData0() {
-    delete[] _array;
   }
 
 };
@@ -99,9 +95,10 @@ public:
   Output0(const TestData0<T> *testData) {
     _length = testData->length();
     _out = new T[_length];
-    const T *array = testData->array();
-    for (size_t i = 0; i < _length; i++)
+    auto array = testData->array();
+    for (size_t i = 0; i < _length; i++) {
       _out[i] = array[i];
+    }
   }
 
   ~Output0() {
@@ -247,7 +244,7 @@ public:
 };
 
 void comparisonSortInPlaceBenchmark() {
-  ComparisonSortInPlaceBenchmark<std::string> benchmark;
+  ComparisonSortInPlaceBenchmark<float> benchmark;
   int samples = 100;
   int min = 1;
   long max = (long) 1e6;
