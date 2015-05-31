@@ -17,7 +17,6 @@
 #include "shell_sort.h"
 
 #include <sstream>
-#include <stdlib.h>
 
 template<typename T>
 T generate() {
@@ -203,10 +202,17 @@ public:
             });;
     });
 
-    this->addMethod("quicksortPlusShell@160", [=](const TestData0<T> &data, Output0<T> *output) {
-        quicksort(output->out(), output->out() + output->length(), less<T>,
-            160, [=](T *start, T *end) {
-                shellSort(start, end, less<T>);
+    this->addMethod("quicksortSwap", [=](const TestData0<T> &data, Output0<T> *output) {
+        quicksortSwap(output->out(), output->out() + output->length(), less<T>,
+            2, [=](T *start, T *end) {
+                max_two(start, end, less<T>);
+            });
+    });
+
+    this->addMethod("quicksortSwapPlusInsertion@10", [=](const TestData0<T> &data, Output0<T> *output) {
+        quicksortSwap(output->out(), output->out() + output->length(), less<T>,
+            10, [=](T *start, T *end) {
+                insertionSort(start, end, less<T>);
             });
     });
 
@@ -217,18 +223,11 @@ public:
             });
     });
 
-    this->addMethod("quicksortSwap", [=](const TestData0<T> &data, Output0<T> *output) {
-        quicksortSwap(output->out(), output->out() + output->length(), less<T>,
-            2, [=](T *start, T *end) {
-                max_two(start, end, less<T>);
-            });
-    });
-
-    this->addMethod("quicksortSwapThreaded", [](const TestData0<T> &data, Output0<T> *output) {
+    this->addMethod("quicksortSwapThreadedPlusInsertion@10", [](const TestData0<T> &data, Output0<T> *output) {
         quicksortSwapThreaded(output->out(), output->out() + output->length(), less<T>,
             std::max(5000, (int) (0.04 * output->length())),
-            2, [=](T *start, T *end) {
-                max_two(start, end, less<T>);
+            10, [=](T *start, T *end) {
+                insertionSort(start, end, less<T>);
             });
     });
 
@@ -245,10 +244,10 @@ public:
 
 void comparisonSortInPlaceBenchmark() {
   ComparisonSortInPlaceBenchmark<float> benchmark;
-  int samples = 100;
+  int samples = 50;
   int min = 1;
-  long max = (long) 1e6;
-  int distribution = 2;
+  long max = (long) 5e6;
+  int distribution = 3;
   bool rounded = true;
   long cap = max * 500;
   benchmark.run(samples, min, max, distribution, rounded, cap, "Microseconds");

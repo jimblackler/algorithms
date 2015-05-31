@@ -1,7 +1,7 @@
 #pragma once
 
 template<typename T, typename Predicate>
-static T *median3(Predicate less, T* x) {
+static T median3(Predicate less, T x) {
   if (less(x[0], x[1])) {
     // 012 or 021 or 201
     if (less(x[1], x[2]))

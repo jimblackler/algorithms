@@ -3,52 +3,44 @@
 
 namespace comparisonSortInPlace {
 
-template<typename I, typename F, typename T>
-void siftDown(I position, T value, T *start, I count, F less) {
+template<typename F, typename T>
+void siftDown(T position, T start, T end, F less) {
 
   while (true) {
-    I childPosition = 2 * position + 1;
-    if (childPosition >= count)
+    T childPosition = start + 2 * (position - start) + 1;
+    if (childPosition >= end)
       break;  // No children.
 
-    T childValue = start[childPosition];
-
-    I rightChildPosition = childPosition + 1;
+    T rightChildPosition = childPosition + 1;
     // Right child exists?
-    if (rightChildPosition < count) {
-      T rightChildValue = start[rightChildPosition];
+    if (rightChildPosition < end) {
       // And is greater than left?
-      if (less(childValue, rightChildValue )) {
+      if (less(*childPosition, *rightChildPosition)) {
         // Select this child.
         childPosition = rightChildPosition;
-        childValue = rightChildValue;
       }
     }
 
-    if (!less(value, childValue))
+    if (!less(*position, *childPosition))
       break;  // Heap constraint met.
 
     // Promote child to parent, then repeat.
-    start[position] = childValue;
+    std::swap(*position, *childPosition);
     position = childPosition;
   }
-  start[position] = value;
 }
 
 template<typename T, typename F>
-void heapSort(T *start, T *end, F less) {
+void heapSort(T start, T end, F less) {
   auto count = end - start;
 
   for (auto k = (count - 2) / 2; k >= 0; k--) {
-    siftDown(k, start[k], start, count, less);
+    siftDown(start + k, start, start + count, less);
   }
 
   while (count--) {
-    T maximal = start[0];
-    T replaced = start[count];
-    start[count] = maximal;
-
-    siftDown(0, replaced, start, (int) count, less);
+    std::swap(start[0], start[count]);
+    siftDown(start, start, start + count, less);
   }
 }
 

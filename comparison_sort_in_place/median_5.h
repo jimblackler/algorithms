@@ -4,12 +4,12 @@
 #import <algorithm>
 
 template<typename T, typename Predicate>
-static T *median5(Predicate less, T *x) {
-  T *a = x;
-  T *b = x + 1;
-  T *c = x + 2;
-  T *d = x + 3;
-  T *e = x + 4;
+static T median5(Predicate less, T x) {
+  T a = x;
+  T b = x + 1;
+  T c = x + 2;
+  T d = x + 3;
+  T e = x + 4;
 
   if (less(*b, *a))
     std::swap(a, b);

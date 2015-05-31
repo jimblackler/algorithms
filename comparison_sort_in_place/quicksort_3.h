@@ -9,32 +9,37 @@
 
 namespace comparisonSortInPlace {
 
-template <typename T, typename Predicate, typename Size, typename Method>
-void quicksort3(T *start, T *end, Predicate less, Size minSize, Method nextMethod) {
+template<typename T, typename Predicate, typename Size, typename Method>
+void quicksort3(T start, T end, Predicate less, Size minSize, Method nextMethod) {
   auto length = end - start;
   if (length <= minSize) {
     nextMethod(start, end);
     return;
   }
 
-  T *pivot = end - 1;
-  T *c = start + length / 2;
+  T pivot = end - 1;
+  T c = start + length / 2;
   if (length < 40)
     std::swap(*median3(less, c - 1), *pivot);
   else
     std::swap(*median5(less, c - 2), *pivot);
 
-  T *a = start;  // [start, a) is <pivot region
-  T *b = start;  // [b, ptr) is >pivot region
-  for (T *ptr = start; ptr < pivot; ptr++) {
+  T a = start;  // [start, a) is <pivot region
+  T b = start;  // [b, ptr) is >pivot region
+  for (T ptr = start; ptr < pivot; ptr++) {
     if (less(*pivot, *ptr))
       continue;
-    T v = std::move(*ptr);
-    *ptr = std::move(*b++);  // >pivot region shifted
-    if (less(v, *pivot))
-      *a++ = std::move(v);  // <pivot region extended
+
+    if (less(*ptr, *pivot)) {
+      if (a == b) {
+        a++;
+      } else {
+        std::swap(*ptr, *a++);
+      }
+    }
+    std::swap(*ptr, *b++); // Extend=pivot region
+
   }
-  std::fill(a, b, *pivot);
   std::swap(*b++, *pivot);
   quicksort3(start, a, less, minSize, nextMethod);  // Sort <pivot region
   quicksort3(b, end, less, minSize, nextMethod);  // Sort >pivot region

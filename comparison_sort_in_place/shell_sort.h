@@ -8,30 +8,24 @@
 namespace comparisonSortInPlace {
 
 template<typename T, typename F, typename I>
-void insertionSortWithOffset(T *start, T *end, F less, I offset) {
-  for (T *fwd = start + offset; fwd < end; fwd++) {
-    T value = std::move(*fwd);
-    T *rev;
-    for (rev = fwd; rev >= start + offset; rev -= offset) {
-      if (!less(value, rev[-offset]))
+void insertionSortWithOffset(T start, T end, F less, I offset) {
+  for (T fwd = start + offset; fwd < end; fwd++) {
+    for (T rev = fwd; rev >= start + offset; rev -= offset) {
+      if (less(*rev, rev[-offset]))
+        std::swap(*rev, rev[-offset]);
+      else
         break;
-      *rev = std::move(rev[-offset]);
     }
-    *rev = value;
   }
 }
 
-template <typename T, typename F>
-void shellSort(T *start, T *end, F less) {
+template<typename T, typename F>
+void shellSort(T start, T end, F less) {
   auto length = end - start;
-  if (length <= 2) {
-    if (length == 2 && less(start[1], *start))
-      std::swap(*start, start[1]);
-    return;
-  }
+
   int divide = 9;
   for (auto offset = length / divide; offset > 1; offset /= divide) {
-    insertionSortWithOffset(start, end, less, (int) offset);
+    insertionSortWithOffset(start, end, less, offset);
   }
   insertionSort(start, end, less);
 }
