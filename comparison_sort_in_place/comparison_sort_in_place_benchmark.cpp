@@ -79,12 +79,17 @@ public:
 
 template<typename T>
 class Output0 {
-  T *_out;
+  std::vector<T> _out;
   size_t _length;
 
 public:
-  T *out() const {
-    return _out;
+
+  T *out() {
+    return &_out[0];
+  }
+
+  const T *out() const {
+    return &_out[0];
   }
 
   size_t length() const {
@@ -93,15 +98,7 @@ public:
 
   Output0(const TestData0<T> *testData) {
     _length = testData->length();
-    _out = new T[_length];
-    auto array = testData->array();
-    for (size_t i = 0; i < _length; i++) {
-      _out[i] = array[i];
-    }
-  }
-
-  ~Output0() {
-    delete[] _out;
+    _out = testData->array();
   }
 
   bool operator<(Output0 const &right) const {
@@ -131,7 +128,7 @@ public:
     if (testData.length() != length) {
       return "Lengths are different";
     }
-    auto *array = output.out();
+    auto array = output.out();
 
     for (int i = 1; i != length; i++) {
       if (less<T>(array[i], array[i - 1])) {
@@ -151,6 +148,7 @@ public:
         std::make_heap(output->out(), output->out() + output->length(), less<T>);
         std::sort_heap(output->out(), output->out() + output->length(), less<T>);
     });
+
 #ifdef __APPLE__
     this->addMethod("<heapsort>", [](const TestData0<T> &data, Output0<T> *output) {
         heapsort(output->out(), output->length(), sizeof(T), compare<T>);
