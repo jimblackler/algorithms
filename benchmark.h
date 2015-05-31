@@ -111,7 +111,7 @@ public:
           column.results[method.get()] = y;
           if (y > cap) {
             capped.insert(method.get());
-            printf("%s capped at %qi (> %d)\n", method->name.c_str(), y, cap);
+            printf("%s capped at %qi (> %li)\n", method->name.c_str(), y, cap);
           }
         } else {
           printf("Method %s produced invalid output: %s\n", method->name.c_str(), error.c_str());
