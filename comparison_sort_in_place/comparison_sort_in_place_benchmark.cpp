@@ -121,6 +121,8 @@ public:
 template<typename T>
 class ComparisonSortInPlaceBenchmark : public Benchmark<TestData0<T>, Output0<T>> {
 
+  using I = T*;
+
 public:
   std::string isValid(const TestData0<T> &testData, const Output0<T> &output) const {
     auto length = output.length();
@@ -191,7 +193,7 @@ public:
     this->addMethod("quicksort",
         [](const TestData0<T> &data, Output0<T> *output) {
             quicksort(output->out(), output->out() + output->length(), less<T>,
-                2, [](T *start, T *end) {
+                2, [](I start, I end) {
                     max_two(start, end, less<T>);
                 });
         });
@@ -199,7 +201,7 @@ public:
     this->addMethod("quicksort3",
         [](const TestData0<T> &data, Output0<T> *output) {
             quicksort3(output->out(), output->out() + output->length(), less<T>,
-                2, [](T *start, T *end) {
+                2, [](I start, I end) {
                     max_two(start, end, less<T>);
                 });;
         });
@@ -207,7 +209,7 @@ public:
     this->addMethod("quicksortSwap",
         [](const TestData0<T> &data, Output0<T> *output) {
             quicksortSwap(output->out(), output->out() + output->length(), less<T>,
-                2, [](T *start, T *end) {
+                2, [](I start, I end) {
                     max_two(start, end, less<T>);
                 });
         });
@@ -215,7 +217,7 @@ public:
     this->addMethod("quicksortSwapPlusInsertion@10",
         [](const TestData0<T> &data, Output0<T> *output) {
             quicksortSwap(output->out(), output->out() + output->length(), less<T>,
-                10, [](T *start, T *end) {
+                10, [](I start, I end) {
                     insertionSort(start, end, less<T>);
                 });
         });
@@ -223,7 +225,7 @@ public:
     this->addMethod("quicksortSwapPlusShell@160",
         [](const TestData0<T> &data, Output0<T> *output) {
             quicksortSwap(output->out(), output->out() + output->length(), less<T>,
-                160, [](T *start, T *end) {
+                160, [](I start, I end) {
                     shellSort(start, end, less<T>);
                 });
         });
@@ -232,15 +234,16 @@ public:
         [](const TestData0<T> &data, Output0<T> *output) {
             quicksortSwapThreaded(output->out(), output->out() + output->length(), less<T>,
                 std::max(5000, (int) (0.04 * output->length())),
-                10, [](T *start, T *end) {
+                10, [](I start, I end) {
                     insertionSort(start, end, less<T>);
                 });
         });
 
-    this->addMethod("quicksortSwapThreadedShell@160", [](const TestData0<T> &data, Output0<T> *output) {
+    this->addMethod("quicksortSwapThreadedShell@160",
+        [](const TestData0<T> &data, Output0<T> *output) {
         quicksortSwapThreaded(output->out(), output->out() + output->length(), less<T>,
             std::max(5000, (int) (0.04 * output->length())),
-            160, [](T *start, T *end) {
+            160, [](I start, I end) {
                 shellSort(start, end, less<T>);
             });
     });
