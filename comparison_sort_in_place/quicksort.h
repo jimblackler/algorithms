@@ -14,12 +14,16 @@ void quicksort(T start, T end, Predicate less, Size minSize, Method nextMethod) 
     nextMethod(start, end);
     return;
   }
+
   T pivot = end - 1;
   T c = start + length / 2;
-  if (length < 40)
+  if (length < 20)
+    std::swap(*c, *pivot);
+  else if (length < 40)
     std::swap(*median3(less, c - 1), *pivot);
   else
     std::swap(*median5(less, c - 2), *pivot);
+
   T divider = start;
   for (T ptr = start; ptr < pivot; ptr++) {
     if (less(*ptr, *pivot))
