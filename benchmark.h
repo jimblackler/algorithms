@@ -55,7 +55,7 @@ public:
   }
 
   void run(int samples, float min, float max, float distribution, bool rounded, long cap,
-      const char *label) {
+      const char *xlabel) {
     std::vector<Column> columns;
     std::set<const Method *> capped;
     std::unique_ptr<Timer> timer(Timer::newTimer());
@@ -161,7 +161,7 @@ public:
 
     fprintf(gp, "set xrange [%f:%f]\n", min, columns.back().x);
     fprintf(gp, "set yrange [0:%li]\n", cap);
-    fprintf(gp, "set ylabel \"%s\"\n", label);
+    fprintf(gp, "set xlabel \"%s\"\n", xlabel);
 
     fprintf(gp, "plot ");
     const char *separator = "";
