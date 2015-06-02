@@ -134,10 +134,25 @@ public:
 class RatioBenchmark : public SlidingWindowMaximumBenchmark<RatioTestData> {};
 
 void slidingWindowMaximumBenchmark() {
-//  SpeedBenchmark benchmark;
-//  benchmark.run(100, 1, 1000000, 4, true, 12000, "Microseconds");
-
-  RatioBenchmark benchmark;
-  benchmark.run(60, 0, 1, 1, false, 400000, "Window size ratio");
-
+  if (true) {
+    SpeedBenchmark benchmark;
+    int samples = 30;
+    int min = 1;
+    int max = 1000000;
+    int distribution = 4;
+    int cap = 12000000;
+    char const *xlabel = "Bytes";
+    bool rounded = true;
+    benchmark.run(samples, min, max, distribution, rounded, cap, xlabel);
+  } else {
+    RatioBenchmark benchmark;
+    int samples = 30;
+    int min = 0;
+    int max = 1;
+    int distribution = 1;
+    bool rounded = false;
+    int cap = 400000000;
+    char const *xlabel = "Window size ratio";
+    benchmark.run(samples, min, max, distribution, rounded, cap, xlabel);
+  }
 }
