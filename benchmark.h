@@ -54,6 +54,10 @@ public:
     return std::string();
   }
 
+  long long yAxisValue(long long microseconds, const Output &output) {
+    return microseconds;
+  }
+
   void run(int samples, float min, float max, float distribution, bool rounded, long cap,
       const char *xlabel) {
     std::vector<Column> columns;
@@ -104,7 +108,7 @@ public:
         invoker(testData, output);
         auto after = timer->getTime();
 
-        long long y = after - before;
+        auto y = yAxisValue(after - before, *output);
         std::string error = isValid(testData, *output);
         if (error.empty()) {
           results.insert(std::make_pair(std::unique_ptr<const Output>(output), method.get()));
