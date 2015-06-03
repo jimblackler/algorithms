@@ -29,7 +29,7 @@ std::string generate<std::string>() {
 }
 
 template<typename T>
-auto less = [](const T &a, const T &b) {
+bool less(const T &a, const T &b) {
     return a < b;
 };
 
