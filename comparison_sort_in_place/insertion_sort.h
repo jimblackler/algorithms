@@ -11,8 +11,11 @@ namespace comparisonSortInPlace {
 template<typename T, typename F>
 void insertionSort(T start, T end, F less) {
   for (T fwd = start + 1; fwd < end; fwd++) {
-    for (T rev = fwd; rev > start && less(*rev, rev[-1]); rev -= 1) {
-      std::swap(*rev, rev[-1]);
+    for (T rev = fwd; rev > start; rev--) {
+      if (less(*rev, rev[-1]))
+        std::swap(*rev, rev[-1]);
+      else
+        break;
     }
   }
 }
