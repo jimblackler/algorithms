@@ -54,7 +54,7 @@ public:
     return std::string();
   }
 
-  long long yAxisValue(long long microseconds, const Output &output) {
+  virtual long long yAxisValue(long long microseconds, const Output &output) {
     return microseconds;
   }
 
@@ -102,6 +102,7 @@ public:
           continue;
 
         Output *output = new Output(&testData);
+
         auto invoker = method->invoker;
 
         auto before = timer->getTime();
