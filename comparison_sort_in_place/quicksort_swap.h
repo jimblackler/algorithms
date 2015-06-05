@@ -28,29 +28,28 @@ void quicksortSwap(T start, T end, Predicate less, Size minSize, Method nextMeth
     std::swap(*median5(less, c - 2), *pivot);
 
   T ge = pivot;
-  T lt;
-  for (lt = start; lt < ge; lt++) {
-    if (less(*lt, *pivot))
-      continue;
-    do {
-      ge--;
-      if (ge == lt)
-        goto escape;
-    } while (!less(*ge, *pivot));
-    std::swap(*lt, *ge);
+
+  for (T lt = start; lt < ge; lt++) {
+    if (!less(*lt, *pivot)) {
+      while (--ge != lt) {
+        if (less(*ge, *pivot)) {
+          std::swap(*lt, *ge);
+          break;
+        }
+      }
+    }
   }
 
-  escape:;
-  if (start == lt) {
-    for (T ptr = lt; ptr < pivot; ptr++) {
+  if (start == ge) {
+    for (T ptr = ge; ptr < pivot; ptr++) {
       if (!less(*pivot, *ptr))
-        std::swap(*ptr, *lt++);
+        std::swap(*ptr, *ge++);
     }
   } else {
-    quicksortSwap(start, lt, less, minSize, nextMethod);
+    quicksortSwap(start, ge, less, minSize, nextMethod);
   }
-  std::swap(*pivot, *lt++);
-  quicksortSwap(lt, end, less, minSize, nextMethod);
+  std::swap(*pivot, *ge++);
+  quicksortSwap(ge, end, less, minSize, nextMethod);
 }
 
 };
