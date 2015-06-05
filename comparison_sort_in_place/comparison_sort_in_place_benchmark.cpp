@@ -29,8 +29,11 @@ std::string generate<std::string>() {
 }
 
 template<typename T>
+using LessType = std::function<bool(const T &, const T &)>;
+
+template<typename T>
 bool less(const T &a, const T &b) {
-    return a < b;
+  return a < b;
 };
 
 template<typename T>
@@ -74,14 +77,12 @@ public:
       srand((unsigned int) (r + seed + i));
     }
   }
-
 };
 
 template<typename T>
 class Output0 {
   std::vector<T> _out;
   size_t _length;
-
 public:
 
   T *out() {
@@ -116,15 +117,34 @@ public:
     }
     return false;
   }
+
 };
 
-template<typename T>
-class ComparisonSortInPlaceBenchmark : public Benchmark<TestData0<T>, Output0<T>> {
 
-  using I = T*;
+template<typename T>
+class Output1 : public Output0<T> {
+private:
+  int compareCount = 0;
 
 public:
-  std::string isValid(const TestData0<T> &testData, const Output0<T> &output) const {
+  Output1(TestData0<T> const *testData) : Output0<T>(testData) {
+
+  }
+
+  int getCompareCount() const {
+    return compareCount;
+  }
+
+  void setCompareCount(int i) {
+    compareCount = i;
+  }
+};
+
+template<typename T, typename _Output>
+class BaseSortBenchmark : public Benchmark<TestData0<T>, _Output> {
+
+public:
+  std::string isValid(const TestData0<T> &testData, const _Output &output) const {
     auto length = output.length();
 
     if (testData.length() != length) {
@@ -139,9 +159,15 @@ public:
     }
     return std::string();
   }
+};
+
+template<typename T>
+class ComparisonSortInPlaceBenchmark : public BaseSortBenchmark<T, Output0<T>> {
+public:
+
+  using I = T *;
 
   ComparisonSortInPlaceBenchmark() {
-
     this->addMethod("std::sort", [](const TestData0<T> &data, Output0<T> *output) {
         std::sort(output->out(), output->out() + output->length(), less<T>);
     });
@@ -194,7 +220,7 @@ public:
         [](const TestData0<T> &data, Output0<T> *output) {
             quicksort(output->out(), output->out() + output->length(), less<T>,
                 2, [](I start, I end) {
-                    max_two(start, end, less<T>);
+                    maxTwo(start, end, less<T>);
                 });
         });
 
@@ -202,7 +228,7 @@ public:
         [](const TestData0<T> &data, Output0<T> *output) {
             quicksort3(output->out(), output->out() + output->length(), less<T>,
                 2, [](I start, I end) {
-                    max_two(start, end, less<T>);
+                    maxTwo(start, end, less<T>);
                 });;
         });
 
@@ -210,7 +236,7 @@ public:
         [](const TestData0<T> &data, Output0<T> *output) {
             quicksortSwap(output->out(), output->out() + output->length(), less<T>,
                 2, [](I start, I end) {
-                    max_two(start, end, less<T>);
+                    maxTwo(start, end, less<T>);
                 });
         });
 
@@ -241,23 +267,134 @@ public:
 
     this->addMethod("quicksortSwapThreadedShell@160",
         [](const TestData0<T> &data, Output0<T> *output) {
-        quicksortSwapThreaded(output->out(), output->out() + output->length(), less<T>,
-            std::max(5000, (int) (0.04 * output->length())),
-            160, [](I start, I end) {
-                shellSort(start, end, less<T>);
-            });
-    });
+            quicksortSwapThreaded(output->out(), output->out() + output->length(), less<T>,
+                std::max(5000, (int) (0.04 * output->length())),
+                160, [](I start, I end) {
+                    shellSort(start, end, less<T>);
+                });
+        });
+  }
 
+};
+
+template<typename T>
+class ComparisonSortInPlaceComparisonCount : public BaseSortBenchmark<T, Output1<T>> {
+
+  template <typename M>
+  void addMethod0(char const *name, M invoker) {
+
+    this->addMethod(name, [&](const TestData0<T> &data, Output1<T> *output) {
+        int compareCount = 0;
+        auto ls = [&](const T &a, const T &b) {
+            compareCount++;
+            return less<T>(a, b);
+        };
+        invoker(data, output, ls);
+        output->setCompareCount(compareCount);
+    });
+  }
+
+
+public:
+
+  using I = T *;
+
+  ComparisonSortInPlaceComparisonCount() {
+    this->addMethod0("std::sort",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            std::sort(output->out(), output->out() + output->length(), ls);
+        });
+
+    using namespace comparisonSortInPlace;
+
+
+    this->addMethod0("bubbleSort",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            bubbleSort(output->out(), output->out() + output->length(), ls);
+        });
+
+    this->addMethod0("insertionSort",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            insertionSort(output->out(), output->out() + output->length(), ls);
+        });
+
+    this->addMethod0("insertionSortBinarySearch",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            insertionSortBinarySearch(output->out(), output->out() + output->length(), ls);
+        });
+
+    this->addMethod0("heapSort",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            heapSort(output->out(), output->out() + output->length(), ls);
+        });
+
+    this->addMethod0("quicksort",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            quicksort(output->out(), output->out() + output->length(), ls,
+                2, [&](I start, I end) {
+                    maxTwo(start, end, ls);
+                });
+        });
+
+    this->addMethod0("quicksort3",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            quicksort3(output->out(), output->out() + output->length(), ls,
+                2, [&](I start, I end) {
+                    maxTwo(start, end, ls);
+                });
+        });
+
+    this->addMethod0("quicksortSwap",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            quicksortSwap(output->out(), output->out() + output->length(), ls,
+                2, [&](I start, I end) {
+                    maxTwo(start, end, ls);
+                });
+        });
+
+    this->addMethod0("quicksortSwapPlusShell@160",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            quicksortSwap(output->out(), output->out() + output->length(), ls,
+                160, [&](I start, I end) {
+                    shellSort(start, end, ls);
+                });
+        });
+    
+    this->addMethod0("quicksortSwapPlusInsertion@10",
+        [](const TestData0<T> &data, Output0<T> *output, LessType<T> ls) {
+            quicksortSwap(output->out(), output->out() + output->length(), ls,
+                10, [&](I start, I end) {
+                    insertionSort(start, end, ls);
+                });
+        });
+  }
+
+
+  long long yAxisValue(long long microseconds, const Output1<T> &output) {
+    return output.getCompareCount();
   }
 };
 
+
 void comparisonSortInPlaceBenchmark() {
-  ComparisonSortInPlaceBenchmark<float> benchmark;
-  int samples = 50;
-  int min = 1;
-  long max = (long) 5e6;
-  int distribution = 3;
-  bool rounded = true;
-  long cap = max * 500;
-  benchmark.run(samples, min, max, distribution, rounded, cap, "Microseconds");
+  if (false) {
+    ComparisonSortInPlaceBenchmark<int> benchmark;
+    int samples = 50;
+    int min = 5;
+    long max = (long) 5e6;
+    int distribution = 3;
+    bool rounded = true;
+    long cap = max * 500;
+    benchmark.run(samples, min, max, distribution, rounded, cap, "Microseconds");
+  } else {
+    ComparisonSortInPlaceComparisonCount<int> benchmark;
+    int samples = 50;
+    int min = 5;
+    long max = (long) 1e6;
+    int distribution = 3;
+    bool rounded = true;
+    long cap = max * 25;
+    benchmark.run(samples, min, max, distribution, rounded, cap, "Compares");
+  }
 }
+
