@@ -1,21 +1,16 @@
 // (c) Jim Blackler (jimblacker@gmail.com)
 // Free software under GNU General Public License Version 2 (see LICENSE).
 
-#pragma once
-
-#include <type_traits>
-
-#include "median_3.h"
-#include "median_5.h"
-#include "median_by_partial_sort.h"
+#include <thread>
+#include "quicksort_swap.h"
 
 namespace comparisonSortInPlace {
 
-template<typename T, typename Predicate>
-void quicksortSwap(T start, T end, Predicate less) {
+template<typename T, typename Predicate, typename Size>
+void quicksortSwapPlusInsertionThreaded(T start, T end, Predicate less, Size minSize) {
   auto length = end - start;
-  if (length <= 1)
-    return;
+  if (length <= minSize)
+    return quicksortSwap(start, end, less);
 
   T pivot = end - 1;
   T c = start + length / 2;
@@ -44,15 +39,21 @@ void quicksortSwap(T start, T end, Predicate less) {
   }
 
   if (start == ge) {
-    for (T ptr = ge; ptr < pivot; ptr++) {
-      if (!less(*pivot, *ptr))
+    for (T ptr = start; ptr < end; ptr++) {
+      if (!less(*pivot, *ptr)) {
         std::swap(*ptr, *ge++);
+      }
     }
+    quicksortSwapPlusInsertionThreaded(ge, end, less, minSize);
   } else {
-    quicksortSwap(start, ge, less);
+
+    std::thread t1([=]() {
+        quicksortSwapPlusInsertionThreaded(start, ge, less, minSize);
+    });
+    std::swap(*pivot, *ge++);
+    quicksortSwapPlusInsertionThreaded(ge, end, less, minSize);
+    t1.join();
   }
-  std::swap(*pivot, *ge++);
-  quicksortSwap(ge, end, less);
 }
 
-};
+}

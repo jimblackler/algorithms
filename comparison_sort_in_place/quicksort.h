@@ -7,11 +7,10 @@
 
 namespace comparisonSortInPlace {
 
-template<typename T, typename Predicate, typename Size, typename Method>
-void quicksort(T start, T end, Predicate less, Size minSize, Method nextMethod) {
+template<typename T, typename Predicate>
+void quicksort(T start, T end, Predicate less) {
   auto length = end - start;
-  if (length <= minSize) {
-    nextMethod(start, end);
+  if (length <= 1) {
     return;
   }
 
@@ -36,9 +35,9 @@ void quicksort(T start, T end, Predicate less, Size minSize, Method nextMethod) 
         std::swap(*ptr, *divider++);
     }
   } else {
-    quicksort(start, divider, less, minSize, nextMethod);
+    quicksort(start, divider, less);
   }
   std::swap(*pivot, *divider++);
-  quicksort(divider, end, less, minSize, nextMethod);
+  quicksort(divider, end, less);
 }
 }

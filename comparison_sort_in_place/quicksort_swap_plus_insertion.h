@@ -12,10 +12,20 @@
 namespace comparisonSortInPlace {
 
 template<typename T, typename Predicate>
-void quicksortSwap(T start, T end, Predicate less) {
+void quicksortSwapPlusInsertion(T start, T end, Predicate less) {
   auto length = end - start;
-  if (length <= 1)
+  if (length <= 10) {
+    /* Insertion sort */
+    for (T fwd = start + 1; fwd < end; fwd++) {
+      for (T rev = fwd; rev > start; rev--) {
+        if (less(*rev, rev[-1]))
+          std::swap(*rev, rev[-1]);
+        else
+          break;
+      }
+    }
     return;
+  }
 
   T pivot = end - 1;
   T c = start + length / 2;
@@ -49,10 +59,10 @@ void quicksortSwap(T start, T end, Predicate less) {
         std::swap(*ptr, *ge++);
     }
   } else {
-    quicksortSwap(start, ge, less);
+    quicksortSwapPlusInsertion(start, ge, less);
   }
   std::swap(*pivot, *ge++);
-  quicksortSwap(ge, end, less);
+  quicksortSwapPlusInsertion(ge, end, less);
 }
 
 };
