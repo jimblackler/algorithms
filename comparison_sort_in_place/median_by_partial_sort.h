@@ -13,8 +13,8 @@ T medianByPartialSort(T start, T end, F less) {
   auto medianPosition = start + (end - start) / 2;
   for (T fwd = start + 1; fwd < end; fwd++) {
     auto remain = end - fwd;
-
-    for (T rev = fwd; rev > start && rev > medianPosition - remain; rev--) {
+    auto terminate = std::max(start, medianPosition - remain);
+    for (T rev = fwd; rev > terminate; rev--) {
       if (less(*rev, rev[-1]))
         std::swap(*rev, rev[-1]);
       else
