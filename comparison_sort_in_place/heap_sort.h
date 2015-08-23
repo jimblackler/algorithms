@@ -21,7 +21,7 @@ void siftDown(T position, T start, T end, F less) {
       }
     }
 
-    if (!less(*position, *childPosition))
+    if (less(*childPosition, *position))
       break;  // Heap constraint met.
 
     // Promote child to parent, then repeat.
@@ -35,7 +35,7 @@ void heapSort(T start, T end, F less) {
   auto count = end - start;
 
   for (auto k = (count - 2) / 2; k >= 0; k--) {
-    siftDown(start + k, start, start + count, less);
+    siftDown(start + k, start, end, less);
   }
 
   while (count--) {
